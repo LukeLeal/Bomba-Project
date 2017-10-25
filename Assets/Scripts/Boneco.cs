@@ -11,9 +11,19 @@ public class Boneco : MonoBehaviour {
 
     //  shortcut transform.position #sdds
 
+    #region stats
+    int firePower; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
+    int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
+    int speed; 
+    bool kick;
+    bool punch;
+    bool hold;
     
-	// Use this for initialization
-	void Start () {
+#endregion
+
+    // Use this for initialization
+    void Start () {
         gc = GridController.instance;
 	}
 	
@@ -58,5 +68,13 @@ public class Boneco : MonoBehaviour {
 
 #endregion
 
+    }
+
+    // 
+    void placeBomb() {
+        // Só pode colocar bomba se tiver alguma disponível
+        if(bombsUsed < bombsMax) {
+
+        }
     }
 }
