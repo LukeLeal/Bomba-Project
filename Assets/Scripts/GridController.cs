@@ -41,7 +41,7 @@ public class GridController : Singleton<GridController> {
     // Verifica se há alguma colisão que impede o movimento pretendido
     // (Talvez seja melhor deixar isso no Boneco já que atm usa nada do gc)
     public bool possibleMove(float x, float y, Vector2 dir) {
-        Physics2D.Raycast(new Vector2(x, y), dir, 1);
+        // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
         if(Physics2D.Raycast(new Vector2(x, y), dir, 1).collider == null) {
             return true;
         }

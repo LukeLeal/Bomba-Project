@@ -11,9 +11,15 @@ public class Bomb : MonoBehaviour {
 	void Start () {
 		
 	}
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
 		
 	}
+
+    public void setup(Vector3 pos) {
+        transform.position = pos;
+        GetComponent<SpriteRenderer>().sortingOrder = 3;
+        Debug.Log("Ligo!");
+    }
 }

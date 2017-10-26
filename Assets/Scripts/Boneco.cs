@@ -65,8 +65,13 @@ public class Boneco : MonoBehaviour {
                 Debug.Log("esquerda");
             }
         }
+        #endregion
 
-#endregion
+        if (Input.GetKeyDown(KeyCode.Z)) {
+            placeBomb();
+        }
+
+
 
     }
 
@@ -74,7 +79,9 @@ public class Boneco : MonoBehaviour {
     void placeBomb() {
         // Só pode colocar bomba se tiver alguma disponível
         if(bombsUsed < bombsMax) {
-
+            // Cria a bomba na posição atual
+            Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
+            b.setup(gc.centerPosition(transform.position));
         }
     }
 }
