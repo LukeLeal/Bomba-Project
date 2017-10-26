@@ -42,9 +42,32 @@ public class GridController : Singleton<GridController> {
     // (Talvez seja melhor deixar isso no Boneco já que atm usa nada do gc)
     public bool possibleMove(float x, float y, Vector2 dir) {
         // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
-        if(Physics2D.Raycast(new Vector2(x, y), dir, 1).collider == null) {
-            return true;
+        RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
+
+        foreach (RaycastHit2D hit in hits) {
+            if(hit.collider.gameObject.tag == "Bomb" && centerPosition(hit.point) == new Vector3(x, y)) {
+                // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela.
+                continue;
+            } else {
+                // Qualquer outra colisão, não pode.
+                return false;
+            }
         }
-        return false;
+        return true;
     }
+
+    public GameObject[] tileContents(Vector3 v) {
+        // Soon
+        return null;
+    }
+
+    //// Verifica se há alguma colisão que impede o movimento pretendido
+    //// (Talvez seja melhor deixar isso no Boneco já que atm usa nada do gc)
+    //public bool possibleMove(float x, float y, Vector2 dir) {
+    //    // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
+    //    if (Physics2D.Raycast(new Vector2(x, y), dir, 1).collider == null) {
+    //        return true;
+    //    }
+    //    return false;
+    //}
 }

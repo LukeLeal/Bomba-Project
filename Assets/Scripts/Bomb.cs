@@ -17,9 +17,22 @@ public class Bomb : MonoBehaviour {
 		
 	}
 
+    // Posiciona e Liga a bomba
     public void setup(Vector3 pos) {
         transform.position = pos;
         GetComponent<SpriteRenderer>().sortingOrder = 3;
         Debug.Log("Ligo!");
+        StartCoroutine(tick());
+    }
+
+    // Tempo até explodir
+    IEnumerator tick() {
+        yield return new WaitForSeconds(2f);
+        explode();
+    }
+
+    void explode() {
+        Debug.Log("BOOM!");
+        Destroy(gameObject);
     }
 }
