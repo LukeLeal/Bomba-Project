@@ -39,16 +39,39 @@ public class GridController : Singleton<GridController> {
     }
 
     // Verifica se há alguma colisão que impede o movimento pretendido
-    // (Talvez seja melhor deixar isso no Boneco já que atm usa nada do gc)
+    // Pode ou não estar depreciado -q
     public bool possibleMove(float x, float y, Vector2 dir) {
         // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
         RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
-
+        Debug.Log(x + ", " + y);
         foreach (RaycastHit2D hit in hits) {
-            if(hit.collider.gameObject.tag == "Bomb" && centerPosition(hit.point) == new Vector3(x, y)) {
+            if (hit.collider.gameObject.tag == "Bomb" && centerPosition(hit.point) == new Vector3(x, y)) {
                 // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela.
                 continue;
             } else {
+                // Qualquer outra colisão, não pode.
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Verifica se há alguma colisão que impede o movimento pretendido.
+    // Para uso de GameObjects que possuem colliders.
+    public bool possibleMove(GameObject go, Vector2 dir) {
+        // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
+        float x = go.transform.position.x;
+        float y = go.transform.position.y;
+        go.GetComponent<Collider2D>();
+        RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
+        // Debug.Log(x + ", " + y);
+        foreach (RaycastHit2D hit in hits) {
+            if (hit.collider.gameObject.tag == "Bomb" && centerPosition(hit.point) == new Vector3(x, y)) {
+                // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela.
+                continue;
+            } else if (hit.collider.gameObject == go) {
+                continue;
+            } else { 
                 // Qualquer outra colisão, não pode.
                 return false;
             }

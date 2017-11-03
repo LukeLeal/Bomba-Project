@@ -7,6 +7,11 @@ public class Bomb : MonoBehaviour {
     int power; // Tiles além do centro ocupado pela explosão (min 1)
     bool pierce; // Explosão não é limitada por blocos destrutíveis.
 
+    int state; // 1: Ticking; 2: Not ticking; 11: Explosion
+    public const int Ticking = 1;
+    public const int NotTicking = 2;
+    public const int Explosion = 11; 
+
 	// Use this for initialization
 	void Start () {
 		
@@ -22,6 +27,7 @@ public class Bomb : MonoBehaviour {
         transform.position = pos;
         GetComponent<SpriteRenderer>().sortingOrder = 3;
         Debug.Log("Ligo!");
+        state = Ticking;
         StartCoroutine(tick());
     }
 
@@ -32,6 +38,7 @@ public class Bomb : MonoBehaviour {
     }
 
     void explode() {
+        state = Explosion;
         Debug.Log("BOOM!");
         Destroy(gameObject);
     }
