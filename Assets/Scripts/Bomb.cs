@@ -33,6 +33,7 @@ public class Bomb : MonoBehaviour {
 
     // Tempo até explodir
     IEnumerator tick() {
+        // #sdds animação
         yield return new WaitForSeconds(2f);
         explode();
     }
@@ -40,6 +41,10 @@ public class Bomb : MonoBehaviour {
     void explode() {
         state = Explosion;
         Debug.Log("BOOM!");
+        //Instantiate(Resources.Load("Prefabs/Explosion"));
+        Instantiate(Resources.Load("Prefabs/Explosion"), transform.position, Quaternion.identity);
         Destroy(gameObject);
+        //Resources.Loa
+
     }
 }

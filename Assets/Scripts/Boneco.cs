@@ -94,13 +94,13 @@ public class Boneco : MonoBehaviour {
         RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
 
         foreach (RaycastHit2D hit in hits) {
-            if (hit.collider.gameObject == gameObject) {
-                // Ignora o raycasthit do próprio collider. Hue
+            if (hit.collider.gameObject == gameObject || // Ignora o raycasthit do próprio collider. Hue
+                hit.collider.gameObject.tag == "Explosion" || // Pode passar por explosão. Sò que morre nisso. Hue
+                (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector3(x, y))) {
+                // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela. 
+                // ATENÇÃO (05/12/17): O da bomba vai dar ruim quando o movimento do boneco ficar liso.
                 continue; 
-            } else if (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector3(x, y)) {
-                // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela.
-                continue;
-            } else {
+            }  else {
                 // Qualquer outra colisão, não pode.
                 return false;
             }
