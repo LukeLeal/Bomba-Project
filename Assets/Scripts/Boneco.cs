@@ -36,7 +36,7 @@ public class Boneco : MonoBehaviour {
 
             // Verifica se o move é possível. Se for, faz. Se não, fica de boa.
             // old: if (gc.possibleMove(transform.position.x, transform.position.y, Vector2.up))
-            if (gc.possibleMove(gameObject, Vector2.up)) {
+            if (possibleMove(Vector2.up)) {
                 transform.position = new Vector3(transform.position.x, transform.position.y + 1);
                 transform.position = gc.centerPosition(transform.position);
                 Debug.Log("cima");
@@ -44,7 +44,7 @@ public class Boneco : MonoBehaviour {
 
         } else if (Input.GetKeyDown(KeyCode.DownArrow)) {
 
-            if (gc.possibleMove(gameObject, Vector2.down)) {
+            if (possibleMove(Vector2.down)) {
                 transform.position = new Vector3(transform.position.x, transform.position.y - 1);
                 transform.position = gc.centerPosition(transform.position);
                 Debug.Log("baixo");
@@ -52,7 +52,7 @@ public class Boneco : MonoBehaviour {
 
         } else if (Input.GetKeyDown(KeyCode.RightArrow)) {
 
-            if (gc.possibleMove(gameObject, Vector2.right)){
+            if (possibleMove(Vector2.right)){
                 transform.position = new Vector3(transform.position.x + 1, transform.position.y);
                 transform.position = gc.centerPosition(transform.position);
                 Debug.Log("direita");
@@ -60,7 +60,7 @@ public class Boneco : MonoBehaviour {
 
         } else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
 
-            if (gc.possibleMove(gameObject, Vector2.left)) {
+            if (possibleMove(Vector2.left)) {
                 transform.position = new Vector3(transform.position.x - 1, transform.position.y);
                 transform.position = gc.centerPosition(transform.position);
                 Debug.Log("esquerda");
@@ -72,17 +72,39 @@ public class Boneco : MonoBehaviour {
             placeBomb();
         }
 
-
-
     }
 
-    // 
+    // Criação de bombas
     void placeBomb() {
         // Só pode colocar bomba se tiver alguma disponível
-        if(bombsUsed < bombsMax) {
+        if (bombsUsed < bombsMax) {
             // Cria a bomba na posição atual
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
             b.setup(gc.centerPosition(transform.position));
         }
+
+        // Falta ver se tile tá livre de outras bombas.
+    }
+
+    // Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
+    bool possibleMove(Vector2 dir) {
+        // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
+        float x = transform.position.x;
+        float y = transform.position.y;
+        RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
+
+        foreach (RaycastHit2D hit in hits) {
+            if (hit.collider.gameObject == gameObject) {
+                // Ignora o raycasthit do próprio collider. Hue
+                continue; 
+            } else if (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector3(x, y)) {
+                // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela.
+                continue;
+            } else {
+                // Qualquer outra colisão, não pode.
+                return false;
+            }
+        }
+        return true;
     }
 }
