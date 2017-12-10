@@ -11,16 +11,34 @@ public class Boneco : MonoBehaviour {
 
     //  shortcut transform.position #sdds
 
-    #region stats
     int firePower; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
-    int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
+    int bombsMax = 5; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed; 
     bool kick;
     bool punch;
     bool hold;
-    
-#endregion
+
+    #region gets & sets
+    public int BombsMax {
+        get { return bombsMax; }
+        set { bombsMax = value; }
+    }
+
+    public int FirePower {
+        get { return firePower; }
+        set { firePower = value; }
+    }
+
+    public int BombsUsed {
+        get {
+            return bombsUsed;
+        }
+        set {
+            bombsUsed = value;
+        }
+    }
+    #endregion
 
     // Use this for initialization
     void Start () {
@@ -39,7 +57,7 @@ public class Boneco : MonoBehaviour {
             if (possibleMove(Vector2.up)) {
                 transform.position = new Vector3(transform.position.x, transform.position.y + 1);
                 transform.position = gc.centerPosition(transform.position);
-                Debug.Log("cima");
+                //Debug.Log("cima");
             }
 
         } else if (Input.GetKeyDown(KeyCode.DownArrow)) {
@@ -47,7 +65,7 @@ public class Boneco : MonoBehaviour {
             if (possibleMove(Vector2.down)) {
                 transform.position = new Vector3(transform.position.x, transform.position.y - 1);
                 transform.position = gc.centerPosition(transform.position);
-                Debug.Log("baixo");
+                //Debug.Log("baixo");
             }
 
         } else if (Input.GetKeyDown(KeyCode.RightArrow)) {
@@ -55,7 +73,7 @@ public class Boneco : MonoBehaviour {
             if (possibleMove(Vector2.right)){
                 transform.position = new Vector3(transform.position.x + 1, transform.position.y);
                 transform.position = gc.centerPosition(transform.position);
-                Debug.Log("direita");
+                //Debug.Log("direita");
             }
 
         } else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
@@ -63,7 +81,7 @@ public class Boneco : MonoBehaviour {
             if (possibleMove(Vector2.left)) {
                 transform.position = new Vector3(transform.position.x - 1, transform.position.y);
                 transform.position = gc.centerPosition(transform.position);
-                Debug.Log("esquerda");
+                //Debug.Log("esquerda");
             }
         }
         #endregion
@@ -77,10 +95,11 @@ public class Boneco : MonoBehaviour {
     // Criação de bombas
     void placeBomb() {
         // Só pode colocar bomba se tiver alguma disponível
-        if (bombsUsed < bombsMax) {
+        if (BombsUsed < bombsMax) {
             // Cria a bomba na posição atual
+            BombsUsed++;
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
-            b.setup(gc.centerPosition(transform.position));
+            b.setup(this);
         }
 
         // Falta ver se tile tá livre de outras bombas.
@@ -98,7 +117,7 @@ public class Boneco : MonoBehaviour {
                 hit.collider.gameObject.tag == "Explosion" || // Pode passar por explosão. Sò que morre nisso. Hue
                 (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector3(x, y))) {
                 // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela. 
-                // ATENÇÃO (05/12/17): O da bomba vai dar ruim quando o movimento do boneco ficar liso.
+                // ATENÇÃO (05/12/17): O da bomba vai dar ruim quando o movimento do boneco ficar dinâmico.
                 continue; 
             }  else {
                 // Qualquer outra colisão, não pode.

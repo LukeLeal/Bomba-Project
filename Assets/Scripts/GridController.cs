@@ -23,7 +23,7 @@ public class GridController : Singleton<GridController> {
             //+ "\nCell "+grid.
             );
         GameObject boneco = GameObject.FindWithTag("Player");
-        boneco.transform.position = centerPosition(boneco.transform.position);
+        boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
     }
 	
 	// Update is called once per frame
