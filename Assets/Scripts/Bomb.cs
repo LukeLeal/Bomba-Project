@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Bomb : MonoBehaviour {
 
+    // Dados da bomba
     int power; // Tiles além do centro ocupado pela explosão (min 1)
     // bool pierce; // Explosão não é limitada por blocos destrutíveis.
     Boneco owner; // Boneco dono da bomba. 
@@ -12,6 +13,8 @@ public class Bomb : MonoBehaviour {
     public const int Ticking = 1;
     public const int NotTicking = 2;
     public const int Exploding = 11;
+
+    Coroutine tickCR;
 
     public int Power {
         get {
@@ -36,10 +39,11 @@ public class Bomb : MonoBehaviour {
     // Posiciona e Liga a bomba
     public void setup(Boneco b) {
         owner = b;
+        power = b.FirePower;
         transform.position = GridController.instance.centerPosition(b.transform.position);
-        GetComponent<SpriteRenderer>().sortingOrder = 3;
+        GetComponent<SpriteRenderer>().sortingOrder = GridController.LObjects;
         state = Ticking;
-        StartCoroutine(tick());
+        tickCR = StartCoroutine(tick());
     }
 
     // Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado.
@@ -47,13 +51,26 @@ public class Bomb : MonoBehaviour {
         // #sdds animação
         yield return new WaitForSeconds(2f);
         state = Exploding;
+        GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
         explode();
+    }
+
+    // Alguma explosão causou a explosão dessa bomba.
+    public IEnumerator forceExplode() {
+        if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
+
+            state = Exploding;
+            if (tickCR != null) {
+                StopCoroutine(tickCR);
+            }
+            GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
+            yield return new WaitForSeconds(0.12f);
+            explode();
+        }
     }
 
     // Cria a explosão central. Ela vai criando o resto.
     void explode() {
-        GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
-
         // Cria as explosões pra cada lado
         createExplosion(Vector2.up);
         createExplosion(Vector2.right);
@@ -61,8 +78,9 @@ public class Bomb : MonoBehaviour {
         createExplosion(Vector2.left);
 
         Explosion e = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), transform.position, Quaternion.identity); // Centro
+        e.setup(owner);
         owner.BombsUsed--;    
-        Destroy(gameObject); // Aparentemente tanto faz se destrói o gameObject antes de fazer o resto. hmm
+        Destroy(gameObject); 
     }
 
     // Cria os objetos das explosões
@@ -73,41 +91,59 @@ public class Bomb : MonoBehaviour {
         while (range > 0) {
             if (range == 1) {
                 // Caso do último. Vê se tem objeto no local ou não. 
-            } else {
-                Explosion e = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
-                curPos += dir;
-            }
+                GameObject go = GridController.instance.tileMainContent(curPos);
+                if(go != null) {
+                    // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
+                    Explosion spriteLess = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
+                    spriteLess.GetComponent<SpriteRenderer>().enabled = false;
+                    spriteLess.setup(owner);
+                    break;
+                }
+            } 
+            Explosion e = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
+            e.setup(owner);
+            curPos += dir;
+            
             range--;
         }
     }
 
     // Define o alcance da explosão
     int calculateRange(Vector2 dir) {
-        // Raycast
-        List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, 5));
-
-        // Ordena os hits de acordo com a direção
-        if (dir == Vector2.up) {
-            hits.Sort((h1, h2) => h1.point.y.CompareTo(h2.point.y)); // y Crescente
-        } else if (dir == Vector2.down) {
-            hits.Sort((h1, h2) => h2.point.y.CompareTo(h1.point.y)); // y Decrescente
-        } else if (dir == Vector2.right) {
-            hits.Sort((h1, h2) => h1.point.x.CompareTo(h2.point.x)); // x Crescente
-        } else if (dir == Vector2.left) {
-            hits.Sort((h1, h2) => h2.point.x.CompareTo(h1.point.x)); // x Decrescente
-        } else {
-            // VISH
-        }
+        List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
 
         foreach(RaycastHit2D hit in hits) {
-            // Vê se é ignorável ou não (tm só bonecos). Calcula distância em tiles no primeiro que não for.
-            if (hit.collider.tag == "Player" || hit.collider.tag == "Explosion") {
-                continue;
+            // Considera apenas aqueles que estão na camada de objetos.
+            if (hit.collider.gameObject.GetComponent<Renderer>().sortingOrder != GridController.LObjects) {
+                continue; 
             }
-            // Retorna distância dos dois centros. Deve dar certo nos tiles. Ai tira 1 ou sei la -q
+
+            if (hit.collider.tag == "Explosion") {
+                // ATENÇÃO (12/12/17): Deve ter um jeito melhor de pegar o centro do GO do hit, mas foi o que consegui. 
+                // hit.point e hit.centroid tavam dando ruim nesse caso.
+                Vector2 pos = GridController.instance.centerPosition(hit.collider.gameObject.transform.position);
+                GameObject go = GridController.instance.tileMainContent((pos + dir));
+                if (go != null) {
+                    if(go.tag == "Explosion") {
+                        // Duas explosões vizinhas. Explosão dessa bomba não as atravessa.
+                        return (int)Vector2.Distance(transform.position, GridController.instance.centerPosition(hit.point));
+                    }
+                }
+                continue; // Apenas uma explosão. Rastro dessa bomba atravessa.
+            }
+
+            // Retorna distância dos dois centros (própria bomba e objeto atingido). 
             return (int)Vector2.Distance(transform.position, GridController.instance.centerPosition(hit.point)) ;
         }
-
-        return 5; // Power; // Se não tem nada no caminho, range máximo
+        return Power; // Se não tem nada no caminho, range máximo
     }
+
+    void OnTriggerEnter2D(Collider2D collision) {
+        if(collision.GetComponent<Collider2D>().tag == "Explosion") {
+            Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer essa bomba explodir.
+            StartCoroutine(forceExplode()); 
+        }
+        
+    }
+
 }

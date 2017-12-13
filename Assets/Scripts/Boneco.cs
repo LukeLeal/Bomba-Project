@@ -11,10 +11,10 @@ public class Boneco : MonoBehaviour {
 
     //  shortcut transform.position #sdds
 
-    int firePower; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
-    int bombsMax = 5; // Quantidade de bombas do boneco (min = 1)
+    int firePower = 7; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
-    int speed; 
+    int speed; // Velocidade de movimento do boneco (inutilizado atm)
     bool kick;
     bool punch;
     bool hold;
@@ -113,15 +113,15 @@ public class Boneco : MonoBehaviour {
         RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
 
         foreach (RaycastHit2D hit in hits) {
-            if (hit.collider.gameObject == gameObject || // Ignora o raycasthit do próprio collider. Hue
-                hit.collider.gameObject.tag == "Explosion" || // Pode passar por explosão. Sò que morre nisso. Hue
+            if (hit.collider.gameObject == gameObject || // Ignora o raycasthit do próprio collider. 
+                hit.collider.gameObject.tag == "Explosion" || // Pode ir onde tem explosão. Só que morre nisso. Hue
                 (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector3(x, y))) {
                 // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela. 
+
                 // ATENÇÃO (05/12/17): O da bomba vai dar ruim quando o movimento do boneco ficar dinâmico.
                 continue; 
             }  else {
-                // Qualquer outra colisão, não pode.
-                return false;
+                return false; // Qualquer outra colisão, não pode.
             }
         }
         return true;

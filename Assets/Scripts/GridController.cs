@@ -8,13 +8,26 @@ using UnityEngine;
 public class GridController : Singleton<GridController> {
 
     public Grid grid; // Grid de jogo atual
-    /* Grid 101:
-     * ^ Y+
-     * |
-     * |
-     * o —————> X+
-     * 
-     * */
+/* Grid 101:
+    * ^ Y+
+    * |
+    * |
+    * o —————> X+
+    * 
+    */
+
+    /* Constantes de Order in Layer. Nomes beta.
+    (13/12/17) Order in Layer nesse projeto, além da função padrão de ordem de aparência dos sprites na sorting layer,
+    támbém é usado no tratamento de certas colisões. Provavelmente tem um jeito mais "elegante",
+    mas entre as coisas que eu consegui pensar e testar, essa foi a que achei melhor. Então... ¯\_(ツ)_/¯ 
+    Se você, caro leitor, tiver uma ideia melhor, please let me know.
+    */
+    public const int LBackground = 0;
+    public const int LObjects = 1;
+    public const int LBonecos = 2;
+    public const int LAbove = 3;
+    public const int LFlying = 4;
+    public const int LTop = 5;
 
     // Use this for initialization
     void Start() {
@@ -38,18 +51,20 @@ public class GridController : Singleton<GridController> {
         return grid.GetCellCenterWorld(grid.WorldToCell(v3));
     }
 
-    public GameObject[] tileContents(Vector3 v) {
-        // Soon
-        return null;
+    // Retorna o GO presente na camada de objects da tile.
+    public GameObject tileMainContent(Vector3 v) {
+        v = centerPosition(v); // Garante centralização
+
+        // ATENÇÃO (11/12/2017): Deve dar pra melhorar essa parte do raycast / if. 
+        RaycastHit2D[] hits = Physics2D.RaycastAll(v, Vector2.up, 0.4f); // Faz um pequeno rc até o limite da tile.
+        foreach(RaycastHit2D hit in hits) {
+            if (hit.collider.gameObject.GetComponent<Renderer>().sortingOrder == LObjects &&
+                centerPosition(hit.point) == v) {
+
+                return hit.collider.gameObject; 
+            }
+        }
+        return null; // Tile vazia.
     }
 
-    //// Verifica se há alguma colisão que impede o movimento pretendido
-    //// (Talvez seja melhor deixar isso no Boneco já que atm usa nada do gc)
-    //public bool possibleMove(float x, float y, Vector2 dir) {
-    //    // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
-    //    if (Physics2D.Raycast(new Vector2(x, y), dir, 1).collider == null) {
-    //        return true;
-    //    }
-    //    return false;
-    //}
 }
