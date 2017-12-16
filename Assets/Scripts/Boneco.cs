@@ -11,7 +11,7 @@ public class Boneco : MonoBehaviour {
 
     //  shortcut transform.position #sdds
 
-    int firePower = 7; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int firePower = 6; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed; // Velocidade de movimento do boneco (inutilizado atm)
@@ -48,14 +48,13 @@ public class Boneco : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-#region ortogonal movement inputs
+    #region ortogonal movement inputs
 
         if (Input.GetKeyDown(KeyCode.UpArrow)) {
 
             // Verifica se o move é possível. Se for, faz. Se não, fica de boa.
-            // old: if (gc.possibleMove(transform.position.x, transform.position.y, Vector2.up))
             if (possibleMove(Vector2.up)) {
-                transform.position = new Vector3(transform.position.x, transform.position.y + 1);
+                transform.position = new Vector2(transform.position.x, transform.position.y + 1);
                 transform.position = gc.centerPosition(transform.position);
                 //Debug.Log("cima");
             }
@@ -63,7 +62,7 @@ public class Boneco : MonoBehaviour {
         } else if (Input.GetKeyDown(KeyCode.DownArrow)) {
 
             if (possibleMove(Vector2.down)) {
-                transform.position = new Vector3(transform.position.x, transform.position.y - 1);
+                transform.position = new Vector2(transform.position.x, transform.position.y - 1);
                 transform.position = gc.centerPosition(transform.position);
                 //Debug.Log("baixo");
             }
@@ -71,7 +70,7 @@ public class Boneco : MonoBehaviour {
         } else if (Input.GetKeyDown(KeyCode.RightArrow)) {
 
             if (possibleMove(Vector2.right)){
-                transform.position = new Vector3(transform.position.x + 1, transform.position.y);
+                transform.position = new Vector2(transform.position.x + 1, transform.position.y);
                 transform.position = gc.centerPosition(transform.position);
                 //Debug.Log("direita");
             }
@@ -79,7 +78,7 @@ public class Boneco : MonoBehaviour {
         } else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
 
             if (possibleMove(Vector2.left)) {
-                transform.position = new Vector3(transform.position.x - 1, transform.position.y);
+                transform.position = new Vector2(transform.position.x - 1, transform.position.y);
                 transform.position = gc.centerPosition(transform.position);
                 //Debug.Log("esquerda");
             }
@@ -93,16 +92,12 @@ public class Boneco : MonoBehaviour {
     }
 
     // Criação de bombas
-    void placeBomb() {
-        // Só pode colocar bomba se tiver alguma disponível
-        if (BombsUsed < bombsMax) {
-            // Cria a bomba na posição atual
+    void placeBomb() {       
+        if (BombsUsed < bombsMax && GridController.instance.tileMainContent(transform.position) == null) {
             BombsUsed++;
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
             b.setup(this);
         }
-
-        // Falta ver se tile tá livre de outras bombas.
     }
 
     // Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
@@ -115,7 +110,7 @@ public class Boneco : MonoBehaviour {
         foreach (RaycastHit2D hit in hits) {
             if (hit.collider.gameObject == gameObject || // Ignora o raycasthit do próprio collider. 
                 hit.collider.gameObject.tag == "Explosion" || // Pode ir onde tem explosão. Só que morre nisso. Hue
-                (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector3(x, y))) {
+                (hit.collider.gameObject.tag == "Bomb" && gc.centerPosition(hit.point) == new Vector2(x, y))) {
                 // Atravessa colisão apenas se for uma bomba e estiver "dentro" dela. 
 
                 // ATENÇÃO (05/12/17): O da bomba vai dar ruim quando o movimento do boneco ficar dinâmico.
@@ -125,5 +120,18 @@ public class Boneco : MonoBehaviour {
             }
         }
         return true;
+    }
+
+    // BETA
+    IEnumerator die() {
+        yield return new WaitForSeconds(2.5f);
+        GetComponent<SpriteRenderer>().color = Color.white;
+    }
+
+    void OnTriggerEnter2D(Collider2D collision) {
+        if (collision.GetComponent<Collider2D>().tag == "Explosion") {
+            GetComponent<SpriteRenderer>().color = Color.red;
+            StartCoroutine(die());
+        }
     }
 }

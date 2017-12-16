@@ -7,6 +7,8 @@ TagManager:
   - Bomb
   - Explosion
   - GridBlocks
+  - Border
+  - Block
   layers:
   - Default
   - TransparentFX

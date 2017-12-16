@@ -16,14 +16,26 @@ public class Explosion : MonoBehaviour {
 
 	}
 
-    public void setup(Boneco b) {
+    public void setup(Boneco b, bool playSFX) {
         owner = b;
+
+        // O som da explosão deve vir do centro dela.
+        if (playSFX) {
+            AudioSource player = gameObject.AddComponent<AudioSource>();
+            player.playOnAwake = false;
+            AudioClip sfx = (AudioClip)Resources.Load("Sounds/SFX/Explosion v1");
+            if(sfx != null) {
+                player.clip = sfx;
+                player.Play();
+            }
+        }
+        
         StartCoroutine(exploding());
     }
 
     IEnumerator exploding() {
         yield return new WaitForSeconds(1f);
-        Destroy(gameObject);
+        Destroy(gameObject); // Detalhe: Isso corta o som também.
     }
 
 }
