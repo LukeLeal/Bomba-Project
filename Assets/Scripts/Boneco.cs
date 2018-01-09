@@ -14,12 +14,12 @@ public class Boneco : MonoBehaviour {
     int firePower = 6; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
-    int speed = 10; // Velocidade de movimento do boneco
+    int speed = 6; // Velocidade de movimento do boneco
     bool kick;
     bool punch;
     bool hold;
 
-    Vector2Int curMove = new Vector2Int();
+    Vector2Int curDir = new Vector2Int();
 
     #region gets & sets
     public int BombsMax {
@@ -50,40 +50,41 @@ public class Boneco : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        #region ortogonal movement inputs
+        #region Movement
 
-        bool[] border = { false, false }; 
+        bool[] obstacle = { false, false }; // [0] = Obstáculo na horizontal / [1] = Obstáculo na vertical
         bool xInput = false, yInput = false; 
 
+        // Análise dos inputs
         if (Input.GetAxis("Horizontal") > 0) {
-            if (possibleMove(Vector2.right, out border[0])) {
+            if (possibleMove(Vector2.right, out obstacle[0])) {
                 xInput = true;
             }
         } else if (Input.GetAxis("Horizontal") < 0) {
-            if (possibleMove(Vector2.left, out border[0])) {
+            if (possibleMove(Vector2.left, out obstacle[0])) {
                 xInput = true;
             }
         }
 
         if (Input.GetAxis("Vertical") > 0) {
 
-            // Verifica se o move é possível. Se for, faz. Se não, fica de boa.
-            if (possibleMove(Vector2.up, out border[1])) {
+            if (possibleMove(Vector2.up, out obstacle[1])) {
                 yInput = true;
             }
         } else if (Input.GetAxis("Vertical") < 0) {
-            if (possibleMove(Vector2.down, out border[1])) {
+            if (possibleMove(Vector2.down, out obstacle[1])) {
                 yInput = true;
             }
 
-        } 
+        }
 
-        automatum(xInput, yInput);
+        trueDirection(xInput, yInput);
 
-        if(curMove[0] == 1) {
-            calculateMovement("Horizontal", border[0]);
-        } else if (curMove[1] == 1) {
-            calculateMovement("Vertical", border[1]);
+        // Definição e realização do movimento
+        if(curDir[0] == 1) {
+            calculateMovement("Horizontal", obstacle[0]);
+        } else if (curDir[1] == 1) {
+            calculateMovement("Vertical", obstacle[1]);
         }
 
         #endregion
@@ -98,60 +99,70 @@ public class Boneco : MonoBehaviour {
 
     }
 
-    // nome beta
-    void automatum(bool x, bool y) {
+    // Baseado na direção antiga e nos novos inputs, define qual será a nova direção do boneco
+    // Desenho dos estados no "automato" na pasta 'design & etc'
+    void trueDirection(bool x, bool y) {
 
         if (x && y) {
-            if (curMove == new Vector2Int(0, 0)) { // Estado 0
-                curMove = new Vector2Int(1, 2);
+            if (curDir == new Vector2Int(0, 0)) { 
+                curDir = new Vector2Int(1, 2);
 
-            } else if (curMove == new Vector2Int(1, 0)) { // Estado 1
-                curMove = new Vector2Int(2, 1);
+            } else if (curDir == new Vector2Int(1, 0)) {
+                curDir = new Vector2Int(2, 1);
 
-            } else if (curMove == new Vector2Int(0, 1)) { // Estado 2
-                curMove = new Vector2Int(1, 2);
-            } // Nos estados 3 e 4, curMove fica igual
-
+            } else if (curDir == new Vector2Int(0, 1)) { 
+                curDir = new Vector2Int(1, 2);
+            } 
+        
         } else if (x) {
-            curMove = new Vector2Int(1, 0);
+            curDir = new Vector2Int(1, 0);
         } else if (y) {
-            curMove = new Vector2Int(0, 1);
+            curDir = new Vector2Int(0, 1);
         } else {
-            curMove = new Vector2Int(0, 0);
+            curDir = new Vector2Int(0, 0);
         }
     }
 
-    // Define qual será o movimento realizado pelo boneco de acordo com o input e a posição atual
-    void calculateMovement(string dir, bool closeToBorder) {
-        Debug.Log(curMove);
-        float moveConst = Time.deltaTime * 0.5f * speed; // BETA. 
+    // Define qual será o movimento realizado pelo boneco de acordo com o input e a posição atual.
+    // A ideia do movimento no jogo é sempre se manter no centro de um dos eixos da tile (ou próximo dele).
+    void calculateMovement(string dir, bool obstacle) {
 
-        if (!closeToBorder) {
+        float moveConst = Time.deltaTime * speed; // BETA. 
+
+        if (!obstacle) {
             if (dir == "Vertical") {
-                float dif = transform.position.x - gc.centerPosition(transform.position).x; // Vê o quão diferente tá o x
+                float dif = transform.position.x - gc.centerPosition(transform.position).x; 
 
-                // Vê se o range exige ajuste no movimento, ou set ou nada -q
+                // Dependendo da distância do boneco ao centro do eixo horizontal da tile
                 if(Mathf.Abs(dif) > 0.1) {
+                    // Move diagonalmente até se aproximar
                     transform.Translate(Mathf.Sign(dif) * -1 * moveConst, Mathf.Sign(Input.GetAxis(dir)) * moveConst , 0);
 
                 } else if (Mathf.Abs(dif) > 0) {
+                    // Coloca no centro horizontal e segue o movimento vertical
                     transform.position = new Vector2(gc.centerPosition(transform.position).x, transform.position.y);
                     transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
+
                 } else {
+                    // Apenas move verticalmente
                     transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
                 }
 
             } else if (dir == "Horizontal") {
-                // Right // Left
-                float dif = transform.position.y - gc.centerPosition(transform.position).y; // Vê o quão diferente tá o y
+                float dif = transform.position.y - gc.centerPosition(transform.position).y;
 
+                // Dependendo da distância do boneco ao centro do eixo vertical da tile
                 if (Mathf.Abs(dif) > 0.1) {
+                    // Move diagonalmente até se aproximar
                     transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, Mathf.Sign(dif) * -1 * moveConst, 0);
 
                 } else if (Mathf.Abs(dif) > 0) {
+                    // Coloca no centro vertical e segue o movimento horizontal
                     transform.position = new Vector2(transform.position.x, gc.centerPosition(transform.position).y);
                     transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
+
                 } else {
+                    // Apenas move horizontalmente
                     transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
                 }         
             }
@@ -161,7 +172,7 @@ public class Boneco : MonoBehaviour {
         }
     }
 
-    // Criação de bombas
+    // Cria bomba no tile atual
     void placeBomb() {       
         if (BombsUsed < bombsMax && GridController.instance.tileMainContent(transform.position) == null) {
             BombsUsed++;
@@ -171,12 +182,12 @@ public class Boneco : MonoBehaviour {
     }
 
     // Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
-    bool possibleMove(Vector2 dir, out bool border) {
+    bool possibleMove(Vector2 dir, out bool obstacle) {
         // Cria raycast a partir de (x,y), na direção dir com distância de uma tile
         float x = transform.position.x;
         float y = transform.position.y;
         RaycastHit2D[] hits = Physics2D.RaycastAll(new Vector2(x, y), dir, 1);
-        border = false; // BETA
+        obstacle = false; // BETA
 
         foreach (RaycastHit2D hit in hits) {
             if (hit.collider.gameObject == gameObject || // Ignora o raycasthit do próprio collider. 
