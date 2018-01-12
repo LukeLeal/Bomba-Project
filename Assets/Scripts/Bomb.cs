@@ -1,14 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bomb : MonoBehaviour {
+public class Bomb : MonoBehaviour, IZOrder {
 
     // Dados da bomba
     int power; // Tiles além do centro ocupado pela explosão (min 1)
     Boneco owner; // Boneco dono da bomba. 
-
+    int zOrder;
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
+
     public const int Ticking = 1;
     public const int NotTicking = 2;
     public const int Exploding = 11;
@@ -16,12 +18,16 @@ public class Bomb : MonoBehaviour {
     Coroutine tickCR;
 
     public int Power {
-        get {
-            return power;
-        }
+        get { return power; }
 
+        set { power = value; }
+    }
+
+    public int ZOrder {
+        get { return zOrder; }
         set {
-            power = value;
+            GetComponent<Renderer>().sortingOrder = value;
+            zOrder = value;
         }
     }
 
@@ -40,7 +46,7 @@ public class Bomb : MonoBehaviour {
         owner = b;
         power = b.FirePower;
         transform.position = GridController.instance.centerPosition(b.transform.position);
-        GetComponent<SpriteRenderer>().sortingOrder = GridController.LObjects;
+        ZOrder = GridController.ZObjects;
         state = Ticking;
         tickCR = StartCoroutine(tick());
     }
@@ -91,9 +97,9 @@ public class Bomb : MonoBehaviour {
         Vector2 curPos = (Vector2) transform.position + dir;
         while (range > 0) {
             if (range == 1) {
-                // Caso do último. Vê se tem objeto no local ou não. 
-                GameObject go = GridController.instance.tileMainContent(curPos);
-                if(go != null) {
+                
+                IZOrder zo = GridController.instance.tileMainContent(curPos);
+                if(zo != null && zo.gameObject.tag != "Explosion") {
                     // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
                     Explosion spriteLess = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
                     spriteLess.GetComponent<SpriteRenderer>().enabled = false;
@@ -114,24 +120,24 @@ public class Bomb : MonoBehaviour {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
 
         foreach(RaycastHit2D hit in hits) {
-            // Considera apenas aqueles que estão na camada de objetos.
-            if (hit.collider.gameObject.GetComponent<Renderer>().sortingOrder != GridController.LObjects) {
-                continue; 
-            }
 
             if (hit.collider.tag == "Explosion") {
                 // ATENÇÃO (12/12/17): Deve ter um jeito melhor de pegar o centro do GO do hit, mas foi o que consegui. 
                 // hit.point e hit.centroid tavam dando ruim nesse caso.
 
                 Vector2 pos = GridController.instance.centerPosition(hit.collider.gameObject.transform.position);
-                GameObject go = GridController.instance.tileMainContent((pos + dir));
-                if (go != null) {
-                    if(go.tag == "Explosion") {
-                        // Rastro não atravessa duas explosões vizinhas.
-                        return (int)Vector2.Distance(transform.position, GridController.instance.centerPosition(hit.point));
-                    }
+                IZOrder other = GridController.instance.tileMainContent((pos + dir));
+                if (other != null && other.gameObject.tag == "Explosion") {
+                    // Rastro não atravessa duas explosões vizinhas.
+                    return (int)Vector2.Distance(transform.position, GridController.instance.centerPosition(hit.point));
                 }
                 continue; // Apenas uma explosão. Rastro atravessa.
+            }
+
+            // Considera apenas aqueles que estão na camada de objetos.
+            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            if (zo != null && zo.ZOrder != GridController.ZObjects) {
+                continue;
             }
 
             // Retorna distância dos dois centros (própria bomba e objeto atingido). 

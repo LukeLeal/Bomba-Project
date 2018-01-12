@@ -2,12 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Explosion : MonoBehaviour {
+public class Explosion : MonoBehaviour, IZOrder {
 
     Boneco owner;
+    int zOrder;
 
-	// Use this for initialization
-	void Start () {
+    public int ZOrder {
+        get { return zOrder; }
+        set {
+            GetComponent<Renderer>().sortingOrder = value;
+            zOrder = value;
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
 
     }
 	
@@ -18,6 +27,7 @@ public class Explosion : MonoBehaviour {
 
     public void setup(Boneco b, bool playSFX) {
         owner = b;
+        zOrder = GetComponent<Renderer>().sortingOrder;
 
         // O som da explosão deve vir do centro dela.
         if (playSFX) {

@@ -365,6 +365,7 @@ GameObject:
   - component: {fileID: 133805851}
   - component: {fileID: 133805850}
   - component: {fileID: 133805849}
+  - component: {fileID: 133805852}
   m_Layer: 0
   m_Name: Border
   m_TagString: Border
@@ -968,6 +969,17 @@ Tilemap:
   m_TileRefreshArray:
   - serializedVersion: 1
     m_DirtyIndex: 0
+--- !u!114 &133805852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 133805847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269d4774747000c488fe61748a7cd82a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &496002855
 GameObject:
   m_ObjectHideFlags: 0
@@ -1040,7 +1052,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPersistant: 0
   grid: {fileID: 496002856}
-  randomBlocks: 0
+  randomBlocks: 1
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -1117,7 +1129,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
@@ -3813,6 +3825,7 @@ GameObject:
   - component: {fileID: 1086196397}
   - component: {fileID: 1086196396}
   - component: {fileID: 1086196398}
+  - component: {fileID: 1086196399}
   m_Layer: 0
   m_Name: GridBlocks
   m_TagString: GridBlocks
@@ -4224,6 +4237,17 @@ TilemapCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
+--- !u!114 &1086196399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1086196394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269d4774747000c488fe61748a7cd82a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2043782931
 GameObject:
   m_ObjectHideFlags: 0

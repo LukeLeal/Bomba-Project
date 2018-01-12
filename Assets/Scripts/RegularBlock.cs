@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RegularBlock : MonoBehaviour {
+public class RegularBlock : MonoBehaviour, IZOrder {
 
     bool isExploding = false;
+    int zOrder;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
+    public int ZOrder {
+        get { return zOrder; }
+        set {
+            GetComponent<Renderer>().sortingOrder = value;
+            zOrder = value;
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
+		zOrder = GetComponent<Renderer>().sortingOrder;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -25,7 +34,7 @@ public class RegularBlock : MonoBehaviour {
         if (collision.GetComponent<Collider2D>().tag == "Explosion") {
             if (!isExploding) {
                 isExploding = true;
-                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer essa bomba explodir.
+                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
                 GetComponent<SpriteRenderer>().color = Color.red;
                 StartCoroutine(exploding());
             }

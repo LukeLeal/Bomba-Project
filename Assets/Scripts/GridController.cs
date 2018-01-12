@@ -19,18 +19,14 @@ public class GridController : Singleton<GridController> {
     * 
     */
 
-    /* Constantes de Order in Layer. Nomes beta.
-    (13/12/17) Order in Layer nesse projeto, além da função padrão de ordem de aparência dos sprites na sorting layer,
-    támbém é usado no tratamento de certas colisões e raycasts. Provavelmente tem um jeito mais "elegante",
-    mas entre as coisas que eu consegui pensar e testar, essa foi a que achei melhor. Então... ¯\_(ツ)_/¯ 
-    Se você, caro leitor, tiver uma ideia melhor, please let me know.
-    */
-    public const int LBackground = 0;
-    public const int LObjects = 1;
-    public const int LBonecos = 2;
-    public const int LAbove = 3;
-    public const int LFlying = 4;
-    public const int LTop = 5;
+    // Constantes ZOrder
+    public const int ZBackground = -1;
+    public const int ZSurface = 0;
+    public const int ZObjects = 1;
+    public const int ZBonecos = 2;
+    public const int ZAbove = 3;
+    public const int ZFlying = 4;
+    public const int ZTop = 5;
 
     // Use this for initialization
     void Start() {
@@ -41,6 +37,7 @@ public class GridController : Singleton<GridController> {
         if (randomBlocks) {
             generateBlocks();
         }
+
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
     }
@@ -53,17 +50,17 @@ public class GridController : Singleton<GridController> {
     void generateBlocks() {
         // Verifica se o mapa está corretamente posicionado
         Vector2 curPos = centerPosition(new Vector2(0, 0));
-        if(curPos != new Vector2(0, 0) || tileMainContent(new Vector2(-1, 0)).tag != "Border" ||
-            tileMainContent(new Vector2(0, -1)).tag != "Border") {
-            Debug.Log("Deu ruim. Tabuleiro mal formado");
+        if(curPos != new Vector2(0, 0) || tileMainContent(new Vector2(-1, 0)).gameObject.tag != "Border" ||
+            tileMainContent(new Vector2(0, -1)).gameObject.tag != "Border") {
+            Debug.Log("Deu ruim. Tabuleiro mal formado"); // PutaVida.exception
         }
 
         // Pegando tamanho da parte jogável do mapa
         int x = 1, y = 1;
         do {
-            GameObject go = tileMainContent(curPos + Vector2.up);
-            if(go != null) {
-                if(go.tag == "Border") {
+            IZOrder zo = tileMainContent(curPos + Vector2.up);
+            if(zo != null) {
+                if(zo.gameObject.tag == "Border") {
                     break;
                 }
             }
@@ -72,9 +69,9 @@ public class GridController : Singleton<GridController> {
         } while (y < 100); // Limite pra impedir loop infinito :P
 
         do {
-            GameObject go = tileMainContent(curPos + Vector2.right);
-            if (go != null) {
-                if (go.tag == "Border") {
+            IZOrder zo = tileMainContent(curPos + Vector2.right);
+            if (zo != null) {
+                if (zo.gameObject.tag == "Border") {
                     break;
                 }
             }
@@ -87,9 +84,9 @@ public class GridController : Singleton<GridController> {
         for(int i = 0; i < x; i++) {
             for(int j = 0; j < y; j++) {
                 gridInfo[i, j] = new TileInfo(centerPosition(new Vector2(i, j)));
-                GameObject go = tileMainContent(new Vector2(i, j));
-                if (go != null) {
-                    gridInfo[i, j].Block = go.tag;
+                IZOrder zo = tileMainContent(new Vector2(i, j));
+                if (zo != null) {
+                    gridInfo[i, j].Block = zo.gameObject.tag;
                 }
             }
         }
@@ -117,16 +114,19 @@ public class GridController : Singleton<GridController> {
     }
 
     // Retorna o GO presente na camada de objects da tile.
-    public GameObject tileMainContent(Vector2 v) {
-        v = centerPosition(v); // Garante centralização
+    public IZOrder tileMainContent(Vector2 v) {
+        Vector2 center = centerPosition(v); // Garante centralização
 
-        // ATENÇÃO (11/12/2017): Deve dar pra melhorar essa parte do raycast / if. 
-        RaycastHit2D[] hits = Physics2D.RaycastAll(v, Vector2.up, 0.4f); // Faz um pequeno rc até o limite da tile.
-        foreach(RaycastHit2D hit in hits) {
-            if (hit.collider.gameObject.GetComponent<Renderer>().sortingOrder == LObjects &&
-                centerPosition(hit.point) == v) {
-
-                return hit.collider.gameObject; 
+        // ATENÇÃO (11/12/2017): Deve dar pra melhorar essa parte do raycast
+        RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up, 0.4f);
+        foreach (RaycastHit2D hit in hits) {
+            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            if (zo != null) {
+                if (zo.ZOrder == GridController.ZObjects && centerPosition(hit.point) == center) {
+                    return zo;
+                }
+            } else {
+                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(hit.point));
             }
         }
         return null; // Tile vazia.
