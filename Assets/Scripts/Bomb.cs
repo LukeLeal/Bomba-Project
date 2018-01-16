@@ -10,6 +10,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     Boneco owner; // Boneco dono da bomba. 
     int zOrder;
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
+    GridController gc;
 
     public const int Ticking = 1;
     public const int NotTicking = 2;
@@ -43,9 +44,10 @@ public class Bomb : MonoBehaviour, IZOrder {
 
     // Posiciona e Liga a bomba
     public void setup(Boneco b) {
+        gc = GridController.instance;
         owner = b;
         power = b.FirePower;
-        transform.position = GridController.instance.centerPosition(b.transform.position);
+        transform.position = gc.centerPosition(b.transform.position);
         ZOrder = GridController.ZObjects;
         state = Ticking;
         tickCR = StartCoroutine(tick());
@@ -68,8 +70,8 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (tickCR != null) {
                 StopCoroutine(tickCR);
             }
-            GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
             yield return new WaitForSeconds(0.12f);
+            GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
             explode();
         }
     }
@@ -98,7 +100,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         while (range > 0) {
             if (range == 1) {
                 
-                IZOrder zo = GridController.instance.tileMainContent(curPos);
+                IZOrder zo = gc.tileMainContent(curPos);
                 if(zo != null && zo.gameObject.tag != "Explosion") {
                     // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
                     Explosion spriteLess = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
@@ -115,23 +117,23 @@ public class Bomb : MonoBehaviour, IZOrder {
         }
     }
 
-    // Define o alcance da explosão
+    // Define o alcance da explosão na determinada direção
     int calculateRange(Vector2 dir) {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
+        Vector2 lastExpPos = Vector2.positiveInfinity;
 
         foreach(RaycastHit2D hit in hits) {
 
+            // Apenas atravessa explosões se não houver duas seguidas.
             if (hit.collider.tag == "Explosion") {
-                // ATENÇÃO (12/12/17): Deve ter um jeito melhor de pegar o centro do GO do hit, mas foi o que consegui. 
-                // hit.point e hit.centroid tavam dando ruim nesse caso.
-
-                Vector2 pos = GridController.instance.centerPosition(hit.collider.gameObject.transform.position);
-                IZOrder other = GridController.instance.tileMainContent((pos + dir));
-                if (other != null && other.gameObject.tag == "Explosion") {
-                    // Rastro não atravessa duas explosões vizinhas.
-                    return (int)Vector2.Distance(transform.position, GridController.instance.centerPosition(hit.point));
+                Vector2 curExpPos = gc.centerPosition(hit.collider.gameObject.transform.position);
+                if (Vector2.Distance(curExpPos, lastExpPos) == 1) {
+                    // Retorna distância entre a bomba e a tile antes das explosões
+                    return (int)Mathf.Clamp(Vector2.Distance(gc.centerPosition(transform.position), curExpPos) - 2, 0, power);
                 }
-                continue; // Apenas uma explosão. Rastro atravessa.
+                lastExpPos = curExpPos;
+                continue;
+                // Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
             }
 
             // Considera apenas aqueles que estão na camada de objetos.
@@ -141,7 +143,7 @@ public class Bomb : MonoBehaviour, IZOrder {
             }
 
             // Retorna distância dos dois centros (própria bomba e objeto atingido). 
-            return (int)Vector2.Distance(transform.position, GridController.instance.centerPosition(hit.point)) ;
+            return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point)) ;
         }
         return Power; // Se não tem nada no caminho, range máximo
     }
@@ -150,8 +152,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         if(collision.GetComponent<Collider2D>().tag == "Explosion") {
             Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer essa bomba explodir.
             StartCoroutine(forceExplode()); 
-        }
-        
+        } 
     }
 
 }

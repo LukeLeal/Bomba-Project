@@ -29,7 +29,7 @@ public class Explosion : MonoBehaviour, IZOrder {
         owner = b;
         zOrder = GetComponent<Renderer>().sortingOrder;
 
-        // O som da explosão deve vir do centro dela.
+        // O som da explosão da bomba deve vir do centro do alcance dela.
         if (playSFX) {
             AudioSource player = gameObject.AddComponent<AudioSource>();
             player.playOnAwake = false;
