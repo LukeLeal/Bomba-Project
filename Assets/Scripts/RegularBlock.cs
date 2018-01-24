@@ -6,6 +6,7 @@ public class RegularBlock : MonoBehaviour, IZOrder {
 
     bool isExploding = false;
     int zOrder;
+    string itemName; // Nome do item (se houver) que aparecerá quando o bloco for explodido.
 
     public int ZOrder {
         get { return zOrder; }
@@ -15,9 +16,15 @@ public class RegularBlock : MonoBehaviour, IZOrder {
         }
     }
 
+    public string ItemName {
+        get { return itemName; }
+        set { itemName = value; }
+    }
+
     // Use this for initialization
-    void Start () {
+    void Awake () {
 		zOrder = GetComponent<Renderer>().sortingOrder;
+        ItemName = "";
     }
 	
 	// Update is called once per frame
@@ -27,6 +34,11 @@ public class RegularBlock : MonoBehaviour, IZOrder {
 
     IEnumerator exploding() {
         yield return new WaitForSeconds(1f);
+        if(ItemName != "") {
+            Item i = Instantiate(Resources.Load<Item>("Prefabs/" + ItemName), GridController.instance.centerPosition(transform.position), 
+                Quaternion.identity);
+            i.name = ItemName;
+        }
         Destroy(gameObject);
     }
 

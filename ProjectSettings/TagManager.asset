@@ -9,6 +9,7 @@ TagManager:
   - GridBlocks
   - Border
   - Block
+  - Item
   layers:
   - Default
   - TransparentFX

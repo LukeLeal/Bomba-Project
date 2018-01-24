@@ -97,13 +97,17 @@ public class GridController : Singleton<GridController> {
         gridInfo[0, 1].Spawn = true;
 
         // Criação dos blocos destrutíveis aleatórios
+        List<RegularBlock> rbs = new List<RegularBlock>();
         foreach (TileInfo t in gridInfo) {
             if (!t.Spawn && t.Block == "") {
                 if (Random.Range(0, 100) < 70) {
-                    Instantiate(Resources.Load<RegularBlock>("Prefabs/RegularBlock"), t.Center, Quaternion.identity);
+                    t.Block = "RegularBlock";
+                    rbs.Add( Instantiate(Resources.Load<RegularBlock>("Prefabs/RegularBlock"), t.Center, Quaternion.identity) );
                 }
             }
         }
+
+        randomizeItems(rbs);
     }
 
     // Centraliza o objeto na célula atual.
@@ -130,6 +134,24 @@ public class GridController : Singleton<GridController> {
             }
         }
         return null; // Tile vazia.
+    }
+
+    /// <summary>
+    /// Define aleatoriamente quais blocos terão items
+    /// </summary>
+    /// <param name="rbs">Lista de blocos</param>
+    void randomizeItems(List<RegularBlock> rbs) {
+        int itemsLeft = rbs.Count / 4;
+        Debug.Log(itemsLeft);
+
+        do {
+            int rng = Random.Range(0, rbs.Count);
+            if(rbs[rng].ItemName == "") {
+                rbs[rng].ItemName = "FireUp"; // Beta. Tem que pegar um item aleatorizado de uma itemPool.
+                itemsLeft--;
+            }
+        } while (itemsLeft > 0);
+        // Atenção (23/01/2018): Otimizar o loop pra não correr risco de rng infinita
     }
 
 }

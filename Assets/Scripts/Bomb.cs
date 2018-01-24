@@ -50,6 +50,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         transform.position = gc.centerPosition(b.transform.position);
         ZOrder = GridController.ZObjects;
         state = Ticking;
+        GetComponent<AudioSource>().Play();
         tickCR = StartCoroutine(tick());
     }
 
@@ -118,6 +119,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     // Define o alcance da explosão na determinada direção
+    // Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
     int calculateRange(Vector2 dir) {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
         Vector2 lastExpPos = Vector2.positiveInfinity;
@@ -133,7 +135,6 @@ public class Bomb : MonoBehaviour, IZOrder {
                 }
                 lastExpPos = curExpPos;
                 continue;
-                // Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
             }
 
             // Considera apenas aqueles que estão na camada de objetos.

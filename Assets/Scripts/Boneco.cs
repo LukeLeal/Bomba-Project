@@ -11,7 +11,7 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     //  shortcut transform.position #sdds
 
-    int firePower = 6; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int firePower = 2; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco
@@ -22,6 +22,9 @@ public class Boneco : MonoBehaviour, IZOrder {
     int zOrder;
 
     Vector2Int curDir = new Vector2Int();
+
+    public const int MinFirePower = 2;
+    public const int MaxFirePower = 10;
 
     #region gets & sets
 
@@ -40,7 +43,15 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     public int FirePower {
         get { return firePower; }
-        set { firePower = value; }
+        set {
+            if (value < MinFirePower) {
+                firePower = MinFirePower; 
+            } else if (value > MaxFirePower) {
+                firePower = MaxFirePower; 
+            } else { 
+                firePower = value;
+            }
+        }
     }
 
     public int BombsUsed {
@@ -238,6 +249,26 @@ public class Boneco : MonoBehaviour, IZOrder {
         }
     }
 
+    void getItem(Item item) {
+        if(item == null) {
+            Debug.Log("PutaVida.Exception: GO com tag Item não é Item");
+            return;
+        }
+
+        GetComponent<AudioSource>().Play();
+        switch (item.name) {
+            case "FireUp": 
+                FirePower += 2;
+                break;
+            default:
+                Debug.Log("PutaVida.Exception: ItemNotFound");
+                break;
+        }
+
+        Destroy(item.gameObject);
+
+    }
+
     // BETA
     IEnumerator die() {
         dead = true;
@@ -247,9 +278,11 @@ public class Boneco : MonoBehaviour, IZOrder {
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.GetComponent<Collider2D>().tag == "Explosion") {
+        if (collision.gameObject.tag == "Explosion") {
             GetComponent<SpriteRenderer>().color = Color.red;
             StartCoroutine(die());
+        } else if (collision.gameObject.tag == "Item") {
+            getItem(collision.gameObject.GetComponent<Item>());
         }
     }
 
