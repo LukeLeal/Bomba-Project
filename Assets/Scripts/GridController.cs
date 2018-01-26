@@ -38,6 +38,18 @@ public class GridController : Singleton<GridController> {
             generateBlocks();
         }
 
+        Debug.Log("x");
+        Debug.Log("x 10.5: " + centerPosition(new Vector2(10.5f, 0f)));
+        Debug.Log("x 10.501: " + centerPosition(new Vector2(10.501f, 0)));
+        Debug.Log("x 10.499: " + centerPosition(new Vector2(10.499f, 0)));
+        Debug.Log("y");
+        Debug.Log("y 10.5: " + centerPosition(new Vector2(0, 10.5f)));
+        Debug.Log("y 10.501: " + centerPosition(new Vector2(0, 10.501f)));
+        Debug.Log("y 10.499: " + centerPosition(new Vector2(0, 10.499f)));
+
+        Debug.Log(tileMainContent(new Vector2(0, 11.0f)));
+        Debug.Log(tileMainContent(new Vector2(0, 10.0f)));
+
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
     }
@@ -117,12 +129,27 @@ public class GridController : Singleton<GridController> {
         return grid.GetCellCenterWorld(grid.WorldToCell(v));
     }
 
+    /// <summary>
+    /// Usado apenas no tratamento de certos raycasts e colisões.
+    /// Em caso de impasse de dupla tile, 
+    /// </summary>
+    /// <param name="v"></param>
+    /// <param name="dir"></param>
+    /// <returns></returns>
+    public Vector2 centerPosition(Vector2 v, Vector2 dir) {
+        // Ver se o resto da divisão de ??? por 1 é 0.5 .
+        // Se for, Pega o tile no sentido da dir.
+        
+        // Talvez apenas isso não seja o suficiente e um doubleCheck seja necessário
+        return grid.GetCellCenterWorld(grid.WorldToCell(v));
+    }
+
     // Retorna o GO presente na camada de objects da tile.
     public IZOrder tileMainContent(Vector2 v) {
         Vector2 center = centerPosition(v); // Garante centralização
 
-        // ATENÇÃO (11/12/2017): Deve dar pra melhorar essa parte do raycast
-        RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up, 0.4f);
+        // ATENÇÃO (26/01/2018): Se bugar, voltar distância pra 0.4
+        RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up, 0.05f);
         foreach (RaycastHit2D hit in hits) {
             IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null) {

@@ -30,12 +30,33 @@ public class Item : MonoBehaviour, IZOrder {
      * Ao explodir, o bloco instancia um prefab desse item no lugar que ele tava.
      * */
 
+    IEnumerator exploding() {
+        yield return new WaitForSeconds(1f);
+        Destroy(gameObject);
+    }
+
     void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.GetComponent<Collider2D>().tag == "Explosion") {
+        if (collision.tag == "Explosion") {
             if (!isExploding) {
+                Debug.Log("Item expl");
+                gameObject.tag = "Explosion";
                 isExploding = true;
-                // Deleta o item e deixa a explosão ficar em cima. [/temp]
-                // Faz a animação de item explodindo [final]
+                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
+                GetComponent<SpriteRenderer>().color = Color.red;
+                StartCoroutine(exploding());
+            }
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision) {
+        if (collision.gameObject.tag == "Explosion") {
+            if (!isExploding) {
+                Debug.Log("Item expl ayy");
+                gameObject.tag = "Explosion";
+                isExploding = true;
+                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
+                GetComponent<SpriteRenderer>().color = Color.red;
+                StartCoroutine(exploding());
             }
         }
     }

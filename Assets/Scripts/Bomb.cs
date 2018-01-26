@@ -102,7 +102,8 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (range == 1) {
                 
                 IZOrder zo = gc.tileMainContent(curPos);
-                if(zo != null && zo.gameObject.tag != "Explosion") {
+                // Comofas pro item
+                if(zo != null) {
                     // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
                     Explosion spriteLess = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
                     spriteLess.GetComponent<SpriteRenderer>().enabled = false;
@@ -118,8 +119,12 @@ public class Bomb : MonoBehaviour, IZOrder {
         }
     }
 
-    // Define o alcance da explosão na determinada direção
-    // Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
+    /// <summary>
+    /// Define o alcance da explosão na determinada direção
+    /// Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
+    /// </summary>
+    /// <param name="dir"> Direção </param>
+    /// <returns> Alcance em tiles </returns>
     int calculateRange(Vector2 dir) {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
         Vector2 lastExpPos = Vector2.positiveInfinity;
@@ -140,9 +145,16 @@ public class Bomb : MonoBehaviour, IZOrder {
             // Considera apenas aqueles que estão na camada de objetos.
             IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null && zo.ZOrder != GridController.ZObjects) {
-                continue;
+                if (zo.gameObject.tag != "Item") {
+                    continue;
+                } else {
+                    Debug.Log("Item lul");
+                    // Talvez retorno o zo?
+                }
             }
-
+            //Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(transform.position, gc.centerPosition(hit.point)) + 
+            //    " - HitPoint: " + hit.point + " - Hit CellCenter: " + gc.centerPosition(hit.point));
+            //Debug.Log(zo.gameObject.tag);
             // Retorna distância dos dois centros (própria bomba e objeto atingido). 
             return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point)) ;
         }
