@@ -11,7 +11,7 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     //  shortcut transform.position #sdds
 
-    int firePower = 2; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int firePower = 12; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco

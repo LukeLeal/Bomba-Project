@@ -136,9 +136,21 @@ public class GridController : Singleton<GridController> {
     /// <param name="v"></param>
     /// <param name="dir"></param>
     /// <returns></returns>
+    /// Quando tá no range 3 e indo pro negativo, da ruim. APENAS NESSE CASO WTF
     public Vector2 centerPosition(Vector2 v, Vector2 dir) {
         // Ver se o resto da divisão de ??? por 1 é 0.5 .
         // Se for, Pega o tile no sentido da dir.
+        if(dir == Vector2.left || dir == Vector2.right) {
+            if(Mathf.Abs(v.x) % 1 == 0.5) {
+                v = new Vector2(v.x + dir.x * 0.1f, v.y);
+                Debug.Log("New v: " + v);
+            }
+        } else if (dir == Vector2.up || dir == Vector2.down) {
+            if (Mathf.Abs(v.y) % 1 == 0.5) {
+                v = new Vector2(v.x, v.y + dir.y * 0.1f);
+                Debug.Log("New v: " + v);
+            }
+        }
         
         // Talvez apenas isso não seja o suficiente e um doubleCheck seja necessário
         return grid.GetCellCenterWorld(grid.WorldToCell(v));
@@ -161,6 +173,19 @@ public class GridController : Singleton<GridController> {
             }
         }
         return null; // Tile vazia.
+    }
+
+    void rayTest(Vector2 origin, Vector2 dir) {
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.right, 3f);
+        foreach (RaycastHit2D hit in hits) {
+            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+
+            Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(origin, centerPosition(hit.point, dir)) +
+                " - HitPoint: " + hit.point + " - Hit CellCenter: " + centerPosition(hit.point, dir));
+            Debug.Log(zo.gameObject.tag);
+
+        }
+
     }
 
     /// <summary>

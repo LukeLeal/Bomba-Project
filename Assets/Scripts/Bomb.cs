@@ -149,14 +149,13 @@ public class Bomb : MonoBehaviour, IZOrder {
                     continue;
                 } else {
                     Debug.Log("Item lul");
-                    // Talvez retorno o zo?
                 }
             }
-            //Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(transform.position, gc.centerPosition(hit.point)) + 
-            //    " - HitPoint: " + hit.point + " - Hit CellCenter: " + gc.centerPosition(hit.point));
-            //Debug.Log(zo.gameObject.tag);
+            Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(transform.position, gc.centerPosition(hit.point, dir)) +
+                " - HitPoint: " + hit.point + " - Hit CellCenter: " + gc.centerPosition(hit.point, dir));
+            Debug.Log(zo.gameObject.tag);
             // Retorna distância dos dois centros (própria bomba e objeto atingido). 
-            return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point)) ;
+            return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point,dir)) ;
         }
         return Power; // Se não tem nada no caminho, range máximo
     }
