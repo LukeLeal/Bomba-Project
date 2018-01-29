@@ -5,7 +5,7 @@ using UnityEngine;
 public class Item : MonoBehaviour, IZOrder {
 
     int zOrder;
-    bool isExploding;
+    bool isExploding = false;
     //string name;
 
     public int ZOrder {
@@ -17,14 +17,14 @@ public class Item : MonoBehaviour, IZOrder {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start() {
         zOrder = GetComponent<Renderer>().sortingOrder;
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    // Update is called once per frame
+    void Update() {
+
+    }
 
     /* RegularBlocks precisará ter um esquema que guarda o nome do item que terá dentro dele.
      * Ao explodir, o bloco instancia um prefab desse item no lugar que ele tava.
@@ -36,25 +36,12 @@ public class Item : MonoBehaviour, IZOrder {
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.tag == "Explosion") {
+        if (collision.gameObject.CompareTag("Explosion")) {
+            Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
             if (!isExploding) {
                 Debug.Log("Item expl");
                 gameObject.tag = "Explosion";
                 isExploding = true;
-                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
-                GetComponent<SpriteRenderer>().color = Color.red;
-                StartCoroutine(exploding());
-            }
-        }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision) {
-        if (collision.gameObject.tag == "Explosion") {
-            if (!isExploding) {
-                Debug.Log("Item expl ayy");
-                gameObject.tag = "Explosion";
-                isExploding = true;
-                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
                 GetComponent<SpriteRenderer>().color = Color.red;
                 StartCoroutine(exploding());
             }

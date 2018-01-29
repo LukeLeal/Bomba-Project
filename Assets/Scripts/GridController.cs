@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 /// <summary>
 /// Classe intermédio entre a UnityEngine.Grid e o funcionamento dela nesse jogo.
@@ -72,7 +73,7 @@ public class GridController : Singleton<GridController> {
         do {
             IZOrder zo = tileMainContent(curPos + Vector2.up);
             if(zo != null) {
-                if(zo.gameObject.tag == "Border") {
+                if(zo.gameObject.CompareTag("Border")) {
                     break;
                 }
             }
@@ -83,7 +84,7 @@ public class GridController : Singleton<GridController> {
         do {
             IZOrder zo = tileMainContent(curPos + Vector2.right);
             if (zo != null) {
-                if (zo.gameObject.tag == "Border") {
+                if (zo.gameObject.CompareTag("Border")) {
                     break;
                 }
             }
@@ -112,7 +113,7 @@ public class GridController : Singleton<GridController> {
         List<RegularBlock> rbs = new List<RegularBlock>();
         foreach (TileInfo t in gridInfo) {
             if (!t.Spawn && t.Block == "") {
-                if (Random.Range(0, 100) < 70) {
+                if (UnityEngine.Random.Range(0, 100) < 70) {
                     t.Block = "RegularBlock";
                     rbs.Add( Instantiate(Resources.Load<RegularBlock>("Prefabs/RegularBlock"), t.Center, Quaternion.identity) );
                 }
@@ -133,27 +134,30 @@ public class GridController : Singleton<GridController> {
     /// Usado apenas no tratamento de certos raycasts e colisões.
     /// Em caso de impasse de dupla tile, 
     /// </summary>
-    /// <param name="v"></param>
-    /// <param name="dir"></param>
+    /// <param name="pos">Posição</param>
+    /// <param name="dir">Direção (e.g. Vector2.up</param>
     /// <returns></returns>
     /// Quando tá no range 3 e indo pro negativo, da ruim. APENAS NESSE CASO WTF
-    public Vector2 centerPosition(Vector2 v, Vector2 dir) {
+    public Vector2 centerPosition(Vector2 pos, Vector2 dir) {
+        pos = new Vector2((float)Math.Round(pos.x, 3), (float)Math.Round(pos.y, 3));
         // Ver se o resto da divisão de ??? por 1 é 0.5 .
         // Se for, Pega o tile no sentido da dir.
-        if(dir == Vector2.left || dir == Vector2.right) {
-            if(Mathf.Abs(v.x) % 1 == 0.5) {
-                v = new Vector2(v.x + dir.x * 0.1f, v.y);
-                Debug.Log("New v: " + v);
+        if (dir == Vector2.left || dir == Vector2.right) {
+            if(Mathf.Abs(pos.x) % 1 == 0.5) {
+                pos = new Vector2(pos.x + dir.x * 0.1f, pos.y);
+                //Debug.Log("New pos: " + pos);
             }
         } else if (dir == Vector2.up || dir == Vector2.down) {
-            if (Mathf.Abs(v.y) % 1 == 0.5) {
-                v = new Vector2(v.x, v.y + dir.y * 0.1f);
-                Debug.Log("New v: " + v);
+            if (Mathf.Abs(pos.y) % 1 == 0.5) {
+                pos = new Vector2(pos.x, pos.y + dir.y * 0.1f);
+                //Debug.Log("New pos: " + pos);
             }
+        } else {
+            Debug.Log("PutaVida.exception: Impossible direction");
         }
         
         // Talvez apenas isso não seja o suficiente e um doubleCheck seja necessário
-        return grid.GetCellCenterWorld(grid.WorldToCell(v));
+        return grid.GetCellCenterWorld(grid.WorldToCell(pos));
     }
 
     // Retorna o GO presente na camada de objects da tile.
@@ -197,7 +201,7 @@ public class GridController : Singleton<GridController> {
         Debug.Log(itemsLeft);
 
         do {
-            int rng = Random.Range(0, rbs.Count);
+            int rng = UnityEngine.Random.Range(0, rbs.Count);
             if(rbs[rng].ItemName == "") {
                 rbs[rng].ItemName = "FireUp"; // Beta. Tem que pegar um item aleatorizado de uma itemPool.
                 itemsLeft--;

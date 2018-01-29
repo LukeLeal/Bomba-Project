@@ -95,13 +95,14 @@ public class Bomb : MonoBehaviour, IZOrder {
 
     // Cria os objetos das explosões em uma direção, se possível
     void createExplosion(Vector2 dir) {
-        int range = calculateRange(dir);
+        IZOrder zo;
+        int range = calculateRange(dir, out zo);
 
         Vector2 curPos = (Vector2) transform.position + dir;
         while (range > 0) {
             if (range == 1) {
                 
-                IZOrder zo = gc.tileMainContent(curPos);
+                //IZOrder zo = gc.tileMainContent(curPos);
                 // Comofas pro item
                 if(zo != null) {
                     // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
@@ -125,17 +126,18 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// </summary>
     /// <param name="dir"> Direção </param>
     /// <returns> Alcance em tiles </returns>
-    int calculateRange(Vector2 dir) {
+    int calculateRange(Vector2 dir, out IZOrder zo) {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
         Vector2 lastExpPos = Vector2.positiveInfinity;
 
         foreach(RaycastHit2D hit in hits) {
 
             // Apenas atravessa explosões se não houver duas seguidas.
-            if (hit.collider.tag == "Explosion") {
+            if (hit.collider.CompareTag("Explosion")) {
                 Vector2 curExpPos = gc.centerPosition(hit.collider.gameObject.transform.position);
                 if (Vector2.Distance(curExpPos, lastExpPos) == 1) {
                     // Retorna distância entre a bomba e a tile antes das explosões
+                    zo = null;
                     return (int)Mathf.Clamp(Vector2.Distance(gc.centerPosition(transform.position), curExpPos) - 2, 0, power);
                 }
                 lastExpPos = curExpPos;
@@ -143,13 +145,11 @@ public class Bomb : MonoBehaviour, IZOrder {
             }
 
             // Considera apenas aqueles que estão na camada de objetos.
-            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null && zo.ZOrder != GridController.ZObjects) {
                 if (zo.gameObject.tag != "Item") {
                     continue;
-                } else {
-                    Debug.Log("Item lul");
-                }
+                } 
             }
             Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(transform.position, gc.centerPosition(hit.point, dir)) +
                 " - HitPoint: " + hit.point + " - Hit CellCenter: " + gc.centerPosition(hit.point, dir));
@@ -157,11 +157,12 @@ public class Bomb : MonoBehaviour, IZOrder {
             // Retorna distância dos dois centros (própria bomba e objeto atingido). 
             return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point,dir)) ;
         }
+        zo = null;
         return Power; // Se não tem nada no caminho, range máximo
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        if(collision.GetComponent<Collider2D>().tag == "Explosion") {
+        if(collision.GetComponent<Collider2D>().CompareTag("Explosion")) {
             Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer essa bomba explodir.
             StartCoroutine(forceExplode()); 
         } 

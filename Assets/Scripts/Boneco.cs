@@ -11,7 +11,7 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     //  shortcut transform.position #sdds
 
-    int firePower = 12; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int firePower = 6; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco
@@ -278,10 +278,10 @@ public class Boneco : MonoBehaviour, IZOrder {
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.gameObject.tag == "Explosion") {
+        if (collision.gameObject.CompareTag("Explosion")) {
             GetComponent<SpriteRenderer>().color = Color.red;
             StartCoroutine(die());
-        } else if (collision.gameObject.tag == "Item") {
+        } else if (collision.gameObject.CompareTag("Item")) {
             getItem(collision.gameObject.GetComponent<Item>());
         }
     }
