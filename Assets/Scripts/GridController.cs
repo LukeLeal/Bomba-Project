@@ -37,7 +37,7 @@ public class GridController : Singleton<GridController> {
 
         if (randomBlocks) {
             generateBlocks();
-        }
+        } 
 
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
@@ -179,7 +179,11 @@ public class GridController : Singleton<GridController> {
         do {
             int rng = UnityEngine.Random.Range(0, rbs.Count);
             if(rbs[rng].ItemName == "") {
-                rbs[rng].ItemName = "FireUp"; // Beta. Tem que pegar um item aleatorizado de uma itemPool.
+                if (itemsLeft % 2 == 0) {
+                    rbs[rng].ItemName = "BombUp"; 
+                } else {
+                    rbs[rng].ItemName = "FireUp"; 
+                }
                 itemsLeft--;
             }
         } while (itemsLeft > 0);

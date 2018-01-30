@@ -11,8 +11,8 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     //  shortcut transform.position #sdds
 
-    int firePower = 6; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
-    int bombsMax = 10; // Quantidade de bombas do boneco (min = 1)
+    int firePower = 2; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
+    int bombsMax = 1; // Quantidade de bombas do boneco
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco
     //bool kick;
@@ -69,6 +69,11 @@ public class Boneco : MonoBehaviour, IZOrder {
     // Use this for initialization
     void Start () {
         gc = GridController.instance;
+
+        if (!gc.randomBlocks) {
+            FirePower = 6;
+            BombsMax = 20;
+        }
 	}
 	
 	// Update is called once per frame
@@ -274,6 +279,11 @@ public class Boneco : MonoBehaviour, IZOrder {
             case "FireUp": 
                 FirePower += 2;
                 break;
+
+            case "BombUp":
+                BombsMax++;
+                break;
+
             default:
                 Debug.Log("PutaVida.Exception: ItemNotFound");
                 break;
