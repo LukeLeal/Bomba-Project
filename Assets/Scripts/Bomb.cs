@@ -42,7 +42,10 @@ public class Bomb : MonoBehaviour, IZOrder {
 		
 	}
 
-    // Posiciona e Liga a bomba
+    /// <summary>
+    /// Posiciona e liga a bomba
+    /// </summary>
+    /// <param name="b"> Boneco que criou a bomba. </param>
     public void setup(Boneco b) {
         gc = GridController.instance;
         owner = b;
@@ -54,7 +57,9 @@ public class Bomb : MonoBehaviour, IZOrder {
         tickCR = StartCoroutine(tick());
     }
 
-    // Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado.
+    /// <summary>
+    /// Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado.
+    /// </summary>
     IEnumerator tick() {
         // #sdds animação
         yield return new WaitForSeconds(2f);
@@ -63,7 +68,9 @@ public class Bomb : MonoBehaviour, IZOrder {
         explode();
     }
 
-    // Alguma explosão causou a explosão dessa bomba.
+    /// <summary>
+    /// Alguma explosão causou a explosão dessa bomba.
+    /// </summary>
     public IEnumerator forceExplode() {
         if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
 
@@ -77,7 +84,9 @@ public class Bomb : MonoBehaviour, IZOrder {
         }
     }
 
-    // Cria a explosão central. Ela vai criando o resto.
+    /// <summary>
+    /// Cria os rastros da explosão nas direções possíveis e o seu centro.
+    /// </summary>
     void explode() {
         // Cria as explosões pra cada lado
         createExplosion(Vector2.up);
@@ -90,7 +99,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         e.setup(owner, true);
 
         owner.BombsUsed--;    
-        Destroy(gameObject); 
+        Destroy(gameObject); // rip bomb
     }
 
     // Cria os objetos das explosões em uma direção, se possível
@@ -124,7 +133,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// Define o alcance da explosão na determinada direção
     /// Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
     /// </summary>
-    /// <param name="dir"> Direção </param>
+    /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Alcance em tiles </returns>
     int calculateRange(Vector2 dir, out IZOrder zo) {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
@@ -144,16 +153,14 @@ public class Bomb : MonoBehaviour, IZOrder {
                 continue;
             }
 
-            // Considera apenas aqueles que estão na camada de objetos.
+            // Considera apenas os elementos que estão na camada de objetos.
             zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null && zo.ZOrder != GridController.ZObjects) {
                 if (zo.gameObject.tag != "Item") {
                     continue;
                 } 
             }
-            Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(transform.position, gc.centerPosition(hit.point, dir)) +
-                " - HitPoint: " + hit.point + " - Hit CellCenter: " + gc.centerPosition(hit.point, dir));
-            Debug.Log(zo.gameObject.tag);
+
             // Retorna distância dos dois centros (própria bomba e objeto atingido). 
             return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point,dir)) ;
         }

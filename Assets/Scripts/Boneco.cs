@@ -119,9 +119,14 @@ public class Boneco : MonoBehaviour, IZOrder {
         if (Input.GetKeyDown(KeyCode.C)) {
             Debug.Log(GridController.instance.grid.WorldToLocal(transform.position));
         }
-    } 
+    }
 
-    // Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
+    /// <summary>
+    /// Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
+    /// </summary>
+    /// <param name="dir"> Direção (e.g. Vector2.up) </param>
+    /// <param name="obstacle"> Se true, indica movimento limitado. False whatever </param>
+    /// <returns> Movimento possível ou não </returns>
     bool possibleMove(Vector2 dir, out bool obstacle) {
         obstacle = false;
 
@@ -142,15 +147,17 @@ public class Boneco : MonoBehaviour, IZOrder {
                 } else {
                     Debug.Log("PutaVida.exception: Impossible direction");
                 }
-
                 obstacle = true;
             }
         }
         return true;
     }
 
-    // Baseado na direção antiga e nos novos inputs, define qual será a nova direção do boneco
-    // Desenho dos estados no "automato" na pasta 'design & etc'
+    /// <summary>
+    /// Baseado na direção antiga e nos novos inputs, define qual será a nova direção do boneco
+    /// Desenho dos estados no "automato" na pasta "design & etc"
+    /// </summary>
+    /// <param name="x, y"> Se há inputs de movimento horizontal / vertical </param>
     void trueDirection(bool x, bool y) {
 
         if (x && y) {
@@ -169,14 +176,17 @@ public class Boneco : MonoBehaviour, IZOrder {
         } else if (y) {
             curDir = new Vector2Int(0, 1);
         } 
-        //else {
-        //    // Atm não chega nesse else por causa do resto do código
-        //    curDir = new Vector2Int(0, 0);
-        //}
+
     }
 
-    // Define qual será o movimento realizado pelo boneco de acordo com o input e a posição atual.
-    // A ideia do movimento no jogo é sempre se manter no centro de um dos eixos da tile (ou ir a ele nas "curvas").
+    /// <summary>
+    /// Define qual será o movimento realizado pelo boneco de acordo com o input e a posição atual.
+    /// A ideia do movimento no jogo é sempre se manter no centro de um dos eixos da tile (ou ir a ele nas "curvas").
+    /// - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não é ideal. 
+    ///     O boneco fica com um "Efeito Luigi". Vai um pouco mais à frente do que deve nos movimentos.
+    /// </summary>
+    /// <param name="dir"> Direção (e.g. Vector2.up) </param>
+    /// <param name="obstacle"> Se há algum elemento à frente que limita o movimento </param>
     void calculateMovement(string dir, bool obstacle) {
 
         float moveConst = Time.deltaTime * speed; // BETA. 
@@ -239,17 +249,21 @@ public class Boneco : MonoBehaviour, IZOrder {
         }
     }
 
-    // Cria bomba no tile atual se possível
+    /// <summary>
+    /// Cria bomba no tile atual se possível
+    /// </summary>
     void placeBomb() {       
-        if (!dead && BombsUsed < bombsMax && 
-            GridController.instance.tileMainContent(transform.position) == null) {
+        if (!dead && BombsUsed < bombsMax && GridController.instance.tileMainContent(transform.position) == null) {
             BombsUsed++;
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
             b.setup(this);
         }
     }
 
-    void getItem(Item item) {
+    /// <summary>
+    /// Realiza as ações e alterações de acordo com o item adquirido.
+    /// </summary>
+    void gotItem(Item item) {
         if(item == null) {
             Debug.Log("PutaVida.Exception: GO com tag Item não é Item");
             return;
@@ -264,9 +278,7 @@ public class Boneco : MonoBehaviour, IZOrder {
                 Debug.Log("PutaVida.Exception: ItemNotFound");
                 break;
         }
-
         Destroy(item.gameObject);
-
     }
 
     // BETA
@@ -282,7 +294,7 @@ public class Boneco : MonoBehaviour, IZOrder {
             GetComponent<SpriteRenderer>().color = Color.red;
             StartCoroutine(die());
         } else if (collision.gameObject.CompareTag("Item")) {
-            getItem(collision.gameObject.GetComponent<Item>());
+            gotItem(collision.gameObject.GetComponent<Item>());
         }
     }
 
