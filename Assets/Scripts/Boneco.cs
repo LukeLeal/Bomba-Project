@@ -277,7 +277,7 @@ public class Boneco : MonoBehaviour, IZOrder {
         GetComponent<AudioSource>().Play();
         switch (item.name) {
             case "FireUp": 
-                FirePower += 2;
+                FirePower++;
                 break;
 
             case "BombUp":
