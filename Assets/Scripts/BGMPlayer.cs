@@ -5,12 +5,15 @@ using UnityEngine;
 public class BGMPlayer : MonoBehaviour {
 
     AudioSource source; // AudioSource do objeto. Responsável por tocar os sons.
+    Tuple<string, int, int> musicInfo; // <Name, LoopStart, LoopEnd>
 
     // Use this for initialization
     void Start () {
         if (source == null) {
             source = gameObject.GetComponent<AudioSource>();
         }
+
+        musicInfo = new Tuple<string, int, int>("Super Bomberman - Area 1", 802816, 3818409);
     }
 	
 	// Update is called once per frame
@@ -28,8 +31,8 @@ public class BGMPlayer : MonoBehaviour {
         //}
 
         // Super Bomberman - Area 1
-        if (source.timeSamples >= 3818409) {
-            source.timeSamples = 802816;
+        if (source.timeSamples >= musicInfo.item3) {
+            source.timeSamples = musicInfo.item2;
         }
 
     }
