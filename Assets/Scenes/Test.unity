@@ -1149,7 +1149,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPersistant: 0
   grid: {fileID: 496002856}
-  randomBlocks: 1
+  randomBlocks: 0
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0

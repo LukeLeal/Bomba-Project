@@ -7,16 +7,17 @@ public class Bomb : MonoBehaviour, IZOrder {
 
     // Dados da bomba
     int power; // Tiles além do centro ocupado pela explosão (min 1)
-    Boneco owner; // Boneco dono da bomba. 
     int zOrder;
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
+    Boneco owner; // Boneco dono da bomba. 
     GridController gc;
 
     public const int Ticking = 1;
     public const int NotTicking = 2;
     public const int Exploding = 11;
 
-    Coroutine tickCR;
+    Coroutine tickCR; // Corotina que controla o tempo até a explosão
+    Coroutine slideMovement; // Corotina que controla o movimento terrestre
 
     public int Power {
         get { return power; }
@@ -39,7 +40,11 @@ public class Bomb : MonoBehaviour, IZOrder {
 
     // Update is called once per frame
     void Update () {
-		
+
+        // Teste de chute de bomba
+        if (Input.GetKeyDown(KeyCode.K)) {
+            wasKicked(Vector2.right);
+        }
 	}
 
     /// <summary>
@@ -175,4 +180,89 @@ public class Bomb : MonoBehaviour, IZOrder {
         } 
     }
 
+    #region Beta Kick Stuff
+
+    /// <summary>
+    /// Inicia o processo de movimento da bomba devido a chute. Chamado pelo Boneco
+    /// </summary>
+    /// <param name="dir"> Direção (e.g. Vector2.up) </param>
+    public void wasKicked(Vector2 dir) {
+        slideMovement = StartCoroutine(Slide(Vector2.right));
+    }
+
+    /// <summary>
+    /// Computa o movimento terrestre da bomba.
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator Slide(Vector2 dir) {
+        bool obstacle;
+        while (possibleMove(dir, out obstacle)) {
+            bombTranslate(dir, obstacle);
+            //yield return new WaitForSeconds(0.12f);
+            yield return null;
+        }
+        
+    }
+
+    /// <summary>
+    /// Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
+    /// </summary>
+    /// <param name="dir"> Direção (e.g. Vector2.up) </param>
+    /// <param name="obstacle"> Se true, indica movimento limitado. False whatever </param>
+    /// <returns> Movimento possível ou não </returns>
+    bool possibleMove(Vector2 dir, out bool obstacle) {
+        obstacle = false;
+
+        IZOrder zo = gc.tileMainContent((Vector2)transform.position + dir);
+        if (zo != null) {
+
+            if (zo.ZOrder == GridController.ZObjects) {
+
+                // Se já tiver o mais próximo possível do obstáculo, movimento impossível
+                if (dir == Vector2.right || dir == Vector2.left) {
+                    if (transform.position.x - gc.centerPosition(transform.position).x == 0) {
+                        return false;
+                    }
+                } else if (dir == Vector2.up || dir == Vector2.down) {
+                    if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
+                        return false;
+                    }
+                } else {
+                    Debug.Log("PutaVida.exception: Impossible direction");
+                }
+                obstacle = true;
+            }
+        }
+        return true;
+    }
+
+    void bombTranslate(Vector2 dir, bool obstacle) {
+        float moveConst = Time.deltaTime * 5; // BETA. 
+
+        if (obstacle) {
+            if (dir == Vector2.up || dir == Vector2.down) {
+                if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
+                    transform.position = new Vector2(transform.position.x, gc.centerPosition(transform.position).y);
+                    return;
+                }
+            } else {
+                if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
+                    transform.position = new Vector2(gc.centerPosition(transform.position).x, transform.position.y);
+                    return;
+                }
+            }
+        }
+
+        transform.Translate(dir * moveConst);
+
+        //if (dir == Vector2.up || dir == Vector2.down) {
+
+        //} else {
+
+        //}
+    }
+
+    
+
+#endregion
 }
