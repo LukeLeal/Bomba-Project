@@ -17,7 +17,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     public const int Exploding = 11;
 
     Coroutine tickCR; // Corotina que controla o tempo até a explosão
-    Coroutine slideMovement; // Corotina que controla o movimento terrestre
+    Coroutine slideCR; // Corotina que controla o movimento terrestre
 
     public int Power {
         get { return power; }
@@ -63,13 +63,15 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado.
+    /// Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado (provavelmente usando deltaTime).
     /// </summary>
     IEnumerator tick() {
         // #sdds animação
         yield return new WaitForSeconds(2f);
         state = Exploding;
-        GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
+        if (slideCR != null) {
+            StopCoroutine(slideCR);
+        }
         explode();
     }
 
@@ -83,8 +85,11 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (tickCR != null) {
                 StopCoroutine(tickCR);
             }
+            if (slideCR != null) {
+                StopCoroutine(slideCR);
+            }
+
             yield return new WaitForSeconds(0.12f);
-            GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
             explode();
         }
     }
@@ -93,6 +98,10 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// Cria os rastros da explosão nas direções possíveis e o seu centro.
     /// </summary>
     void explode() {
+        // Preparação pré-explosão
+        GetComponent<Collider2D>().enabled = false; // Desativa o próprio collider pra não interferir nos cálculos
+        transform.position = gc.centerPosition(transform.position);
+
         // Cria as explosões pra cada lado
         createExplosion(Vector2.up);
         createExplosion(Vector2.right);
@@ -187,7 +196,10 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     public void wasKicked(Vector2 dir) {
-        slideMovement = StartCoroutine(Slide(Vector2.right));
+        if(slideCR != null) {
+            StopCoroutine(slideCR);
+        }
+        slideCR = StartCoroutine(Slide(Vector2.right));
     }
 
     /// <summary>
@@ -205,7 +217,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
+    /// BETA
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <param name="obstacle"> Se true, indica movimento limitado. False whatever </param>
@@ -237,17 +249,17 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     void bombTranslate(Vector2 dir, bool obstacle) {
-        float moveConst = Time.deltaTime * 5; // BETA. 
+        float moveConst = Time.deltaTime * 7; // BETA. 
 
         if (obstacle) {
             if (dir == Vector2.up || dir == Vector2.down) {
                 if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
-                    transform.position = new Vector2(transform.position.x, gc.centerPosition(transform.position).y);
+                    transform.position = gc.centerPosition(transform.position);
                     return;
                 }
             } else {
                 if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
-                    transform.position = new Vector2(gc.centerPosition(transform.position).x, transform.position.y);
+                    transform.position = gc.centerPosition(transform.position);
                     return;
                 }
             }
@@ -262,7 +274,28 @@ public class Bomb : MonoBehaviour, IZOrder {
         //}
     }
 
-    
+    void newbombTranslate(Vector2 dir) {
+        float moveConst = Time.deltaTime * 7; // BETA. 
 
-#endregion
+        if (true) {
+            if (dir == Vector2.up || dir == Vector2.down) {
+                if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
+                    transform.position = gc.centerPosition(transform.position);
+                    return;
+                }
+            } else {
+                if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
+                    transform.position = gc.centerPosition(transform.position);
+                    return;
+                }
+            }
+        }
+
+        transform.Translate(dir * moveConst);
+
+    }
+
+
+
+    #endregion
 }
