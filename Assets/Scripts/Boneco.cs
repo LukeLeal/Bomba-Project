@@ -142,13 +142,26 @@ public class Boneco : MonoBehaviour, IZOrder {
 
                 // Se já tiver o mais próximo possível do obstáculo, movimento impossível
                 if (dir == Vector2.right || dir == Vector2.left) {
-                    if(transform.position.x - gc.centerPosition(transform.position).x == 0) {
-                        return false; 
-                    }
-                } else if(dir == Vector2.up || dir == Vector2.down) {
-                    if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
+
+                    // New - Baseado de fato na distância entre o boneco e o centro do objeto
+                    if (Mathf.Abs(transform.position.x - gc.centerPosition((Vector2)transform.position + dir).x) <= 1) {
                         return false;
                     }
+
+                    //if (transform.position.x - gc.centerPosition(transform.position).x == 0) {
+                    //    return false;
+                    //}
+
+                } else if(dir == Vector2.up || dir == Vector2.down) {
+
+                    // New
+                    if (Mathf.Abs(transform.position.y - gc.centerPosition((Vector2)transform.position + dir).y) <= 1) {
+                        return false;
+                    }
+
+                    //if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
+                    //    return false;
+                    //}
                 } else {
                     Debug.Log("PutaVida.exception: Impossible direction");
                 }

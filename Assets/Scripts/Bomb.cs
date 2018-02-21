@@ -78,7 +78,8 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <summary>
     /// Alguma explosão causou a explosão dessa bomba.
     /// </summary>
-    public IEnumerator forceExplode() {
+    /// <param name="forcePosition"> Posição em que a bomba deverá permanecer para explodir. </param>
+    public IEnumerator forceExplode(Vector2 forcePosition) {
         if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
 
             state = Exploding;
@@ -88,6 +89,7 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (slideCR != null) {
                 StopCoroutine(slideCR);
             }
+            transform.position = forcePosition;
 
             yield return new WaitForSeconds(0.12f);
             explode();
@@ -124,9 +126,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         Vector2 curPos = (Vector2) transform.position + dir;
         while (range > 0) {
             if (range == 1) {
-                
-                //IZOrder zo = gc.tileMainContent(curPos);
-                // Comofas pro item
+
                 if(zo != null) {
                     // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
                     Explosion spriteLess = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
@@ -167,7 +167,7 @@ public class Bomb : MonoBehaviour, IZOrder {
                 continue;
             }
 
-            // Considera apenas os elementos que estão na camada de objetos.
+            // Elementos que estão na camada de objetos e items finalizam o alcance da explosão.
             zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null && zo.ZOrder != GridController.ZObjects) {
                 if (zo.gameObject.tag != "Item") {
@@ -184,8 +184,8 @@ public class Bomb : MonoBehaviour, IZOrder {
 
     void OnTriggerEnter2D(Collider2D collision) {
         if(collision.GetComponent<Collider2D>().CompareTag("Explosion")) {
-            Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer essa bomba explodir.
-            StartCoroutine(forceExplode()); 
+            StartCoroutine(forceExplode(gc.centerPosition(collision.gameObject.transform.position)));
+            Destroy(collision.gameObject); // TEM QUE VER ISSAQUI
         } 
     }
 
@@ -292,7 +292,6 @@ public class Bomb : MonoBehaviour, IZOrder {
         }
 
         transform.Translate(dir * moveConst);
-
     }
 
 
