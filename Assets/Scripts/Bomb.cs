@@ -78,10 +78,14 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <summary>
     /// Alguma explosão causou a explosão dessa bomba.
     /// </summary>
-    /// <param name="forcePosition"> Posição em que a bomba deverá permanecer para explodir. </param>
-    public IEnumerator forceExplode(Vector2 forcePosition) {
+    /// <param name="collision"> Colisão que causou a explosão dessa bomba. </param>
+    public IEnumerator forceExplode(GameObject triggerExplosion) {
         if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
-
+            
+            //if(triggerExplosion.GetComponent<Collider2D>() != null) { // Just in case...
+            //    triggerExplosion.GetComponent<Collider2D>().enabled = false;
+            //}
+            
             state = Exploding;
             if (tickCR != null) {
                 StopCoroutine(tickCR);
@@ -89,10 +93,11 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (slideCR != null) {
                 StopCoroutine(slideCR);
             }
-            transform.position = forcePosition;
+            transform.position = gc.centerPosition(triggerExplosion.transform.position);
 
             yield return new WaitForSeconds(0.12f);
             explode();
+            Destroy(triggerExplosion);
         }
     }
 
@@ -121,7 +126,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     // Cria os objetos das explosões em uma direção, se possível
     void createExplosion(Vector2 dir) {
         IZOrder zo;
-        int range = calculateRange(dir, out zo);
+        int range = calculateRangeBOX(dir, out zo);
 
         Vector2 curPos = (Vector2) transform.position + dir;
         while (range > 0) {
@@ -144,26 +149,28 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
+    /// BETA
     /// Define o alcance da explosão na determinada direção
     /// Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Alcance em tiles </returns>
-    int calculateRange(Vector2 dir, out IZOrder zo) {
-        List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, dir, Power));
-        Vector2 lastExpPos = Vector2.positiveInfinity;
+    int calculateRangeBOX(Vector2 dir, out IZOrder zo) {
+        List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.BoxCastAll(transform.position, new Vector2(0.8f, 0.8f), 0f, dir, power));
+        
+        Vector2 lastExplosionPos = Vector2.positiveInfinity;
 
-        foreach(RaycastHit2D hit in hits) {
+        foreach (RaycastHit2D hit in hits) {
 
             // Apenas atravessa explosões se não houver duas seguidas.
             if (hit.collider.CompareTag("Explosion")) {
-                Vector2 curExpPos = gc.centerPosition(hit.collider.gameObject.transform.position);
-                if (Vector2.Distance(curExpPos, lastExpPos) == 1) {
+                Vector2 curExplosionPos = gc.centerPosition(hit.collider.gameObject.transform.position);
+                if (Vector2.Distance(curExplosionPos, lastExplosionPos) == 1) {
                     // Retorna distância entre a bomba e a tile antes das explosões
                     zo = null;
-                    return (int)Mathf.Clamp(Vector2.Distance(gc.centerPosition(transform.position), curExpPos) - 2, 0, power);
+                    return (int)Mathf.Clamp(Vector2.Distance(gc.centerPosition(transform.position), curExplosionPos) - 2, 0, power);
                 }
-                lastExpPos = curExpPos;
+                lastExplosionPos = curExplosionPos;
                 continue;
             }
 
@@ -172,11 +179,11 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (zo != null && zo.ZOrder != GridController.ZObjects) {
                 if (zo.gameObject.tag != "Item") {
                     continue;
-                } 
+                }
             }
 
-            // Retorna distância dos dois centros (própria bomba e objeto atingido). 
-            return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point,dir)) ;
+            // Retorna distância dos dois centros de tiles (própria bomba e colisão). 
+            return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point, dir));
         }
         zo = null;
         return Power; // Se não tem nada no caminho, range máximo
@@ -184,8 +191,8 @@ public class Bomb : MonoBehaviour, IZOrder {
 
     void OnTriggerEnter2D(Collider2D collision) {
         if(collision.GetComponent<Collider2D>().CompareTag("Explosion")) {
-            StartCoroutine(forceExplode(gc.centerPosition(collision.gameObject.transform.position)));
-            Destroy(collision.gameObject); // TEM QUE VER ISSAQUI
+            StartCoroutine(forceExplode(collision.gameObject));
+            //Destroy(collision.gameObject); 
         } 
     }
 

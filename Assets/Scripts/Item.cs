@@ -32,8 +32,8 @@ public class Item : MonoBehaviour, IZOrder {
 
     void OnTriggerEnter2D(Collider2D collision) {
         if (collision.gameObject.CompareTag("Explosion")) {
-            Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
             if (!isExploding) {
+                Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
                 gameObject.tag = "Explosion";
                 isExploding = true;
                 GetComponent<SpriteRenderer>().color = Color.red;

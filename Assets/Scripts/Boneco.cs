@@ -15,7 +15,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     int bombsMax = 1; // Quantidade de bombas do boneco
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco
-    //bool kick;
+    bool kick = false;
     //bool punch;
     //bool hold;
     bool dead = false;
@@ -295,6 +295,10 @@ public class Boneco : MonoBehaviour, IZOrder {
 
             case "BombUp":
                 BombsMax++;
+                break;
+
+            case "Kick":
+                kick = true;
                 break;
 
             default:

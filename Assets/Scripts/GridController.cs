@@ -130,7 +130,7 @@ public class GridController : Singleton<GridController> {
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Posição centralizada na devida célula </returns>
     public Vector2 centerPosition(Vector2 pos, Vector2 dir) {
-        pos = new Vector2((float)Math.Round(pos.x, 3), (float)Math.Round(pos.y, 3)); // Pra garantir precisão
+        pos = new Vector2((float)Math.Round(pos.x, 2), (float)Math.Round(pos.y, 2)); // Pra garantir precisão
 
         if (dir == Vector2.left || dir == Vector2.right) {
             if(Mathf.Abs(pos.x) % 1 == 0.5) {
