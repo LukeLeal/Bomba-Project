@@ -281,25 +281,25 @@ public class Bomb : MonoBehaviour, IZOrder {
         //}
     }
 
-    void newbombTranslate(Vector2 dir) {
-        float moveConst = Time.deltaTime * 7; // BETA. 
+    //void newbombTranslate(Vector2 dir) {
+    //    float moveConst = Time.deltaTime * 7; // BETA. 
 
-        if (true) {
-            if (dir == Vector2.up || dir == Vector2.down) {
-                if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
-                    transform.position = gc.centerPosition(transform.position);
-                    return;
-                }
-            } else {
-                if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
-                    transform.position = gc.centerPosition(transform.position);
-                    return;
-                }
-            }
-        }
+    //    if (true) {
+    //        if (dir == Vector2.up || dir == Vector2.down) {
+    //            if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
+    //                transform.position = gc.centerPosition(transform.position);
+    //                return;
+    //            }
+    //        } else {
+    //            if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
+    //                transform.position = gc.centerPosition(transform.position);
+    //                return;
+    //            }
+    //        }
+    //    }
 
-        transform.Translate(dir * moveConst);
-    }
+    //    transform.Translate(dir * moveConst);
+    //}
 
 
 

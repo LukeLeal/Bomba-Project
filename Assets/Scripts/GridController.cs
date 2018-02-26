@@ -41,11 +41,14 @@ public class GridController : Singleton<GridController> {
 
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
+        newtileMainContent(new Vector2(2, 1));
     }
 	
 	// Update is called once per frame
 	void Update () {
-		
+        if (Input.GetKeyDown(KeyCode.O)) {
+            newtileMainContent(new Vector2(2, 2));
+        }
 	}
 
     /// <summary>
@@ -165,6 +168,28 @@ public class GridController : Singleton<GridController> {
             }
         }
         return null; // Tile vazia.
+    }
+
+    /// <summary>
+    /// BETA
+    /// </summary>
+    public IZOrder newtileMainContent(Vector2 pos) {
+        Vector2 center = centerPosition(pos); // Garante centralização
+
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
+        foreach (Collider2D collider in collidersInTile) {
+            IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            if (zo != null) {
+                if (zo.ZOrder == GridController.ZObjects && 
+                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks"))) {
+                    Debug.Log(zo.gameObject.name + " - " + zo.gameObject.tag);
+                }
+            } else {
+                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
+            }
+        }
+        
+        return null; // Tile vazia na cada de objects.
     }
 
     /// <summary>
