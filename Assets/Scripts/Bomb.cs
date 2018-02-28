@@ -43,9 +43,13 @@ public class Bomb : MonoBehaviour, IZOrder {
 
         // Teste de chute de bomba
         if (Input.GetKeyDown(KeyCode.K)) {
-            wasKicked(Vector2.right);
+            wasKicked(Vector2.left);
         }
-	}
+
+        if (Input.GetKeyDown(KeyCode.U)) {
+            wasKicked(Vector2.up);
+        }
+    }
 
     /// <summary>
     /// Posiciona e liga a bomba
@@ -156,7 +160,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Alcance em tiles </returns>
     int calculateRangeBOX(Vector2 dir, out IZOrder zo) {
-        List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.BoxCastAll(transform.position, new Vector2(0.8f, 0.8f), 0f, dir, power));
+        List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.BoxCastAll(transform.position, new Vector2(0.9f, 0.9f), 0f, dir, power));
         
         Vector2 lastExplosionPos = Vector2.positiveInfinity;
 
@@ -206,7 +210,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         if(slideCR != null) {
             StopCoroutine(slideCR);
         }
-        slideCR = StartCoroutine(Slide(Vector2.right));
+        slideCR = StartCoroutine(Slide(dir));
     }
 
     /// <summary>
@@ -214,94 +218,51 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// </summary>
     /// <returns></returns>
     IEnumerator Slide(Vector2 dir) {
-        bool obstacle;
-        while (possibleMove(dir, out obstacle)) {
-            bombTranslate(dir, obstacle);
+        transform.position = gc.centerPosition(transform.position); // Just in case...
+
+        while (possibleSlide(dir)) {
+            float moveConst = Time.deltaTime * 7; // BETA. 
+            transform.Translate(dir * moveConst);
+
             //yield return new WaitForSeconds(0.12f);
             yield return null;
         }
-        
+        transform.position = gc.centerPosition(transform.position);
     }
 
     /// <summary>
     /// BETA
+    /// Verifica se o slide (movimento por chute) é possível até a tile à frente
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
-    /// <param name="obstacle"> Se true, indica movimento limitado. False whatever </param>
     /// <returns> Movimento possível ou não </returns>
-    bool possibleMove(Vector2 dir, out bool obstacle) {
-        obstacle = false;
+    bool possibleSlide(Vector2 dir) {
 
-        IZOrder zo = gc.tileMainContent((Vector2)transform.position + dir);
-        if (zo != null) {
+        List <IZOrder> zos = gc.tileContentOnZOrders((Vector2)transform.position + dir, new int[] { 1, 2 });
+        if (zos.Count > 0) {
 
-            if (zo.ZOrder == GridController.ZObjects) {
-
-                // Se já tiver o mais próximo possível do obstáculo, movimento impossível
-                if (dir == Vector2.right || dir == Vector2.left) {
-                    if (transform.position.x - gc.centerPosition(transform.position).x == 0) {
-                        return false;
-                    }
-                } else if (dir == Vector2.up || dir == Vector2.down) {
-                    if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
-                        return false;
-                    }
+            // Só continua o movimento se estiver antes do centro da tile atual
+            if (dir == Vector2.right || dir == Vector2.left) {
+                if (dir.x * (transform.position.x - gc.centerPosition(transform.position).x) < 0) {
+                    return true;
                 } else {
-                    Debug.Log("PutaVida.exception: Impossible direction");
+                    return false; 
                 }
-                obstacle = true;
-            }
-        }
-        return true;
-    }
 
-    void bombTranslate(Vector2 dir, bool obstacle) {
-        float moveConst = Time.deltaTime * 7; // BETA. 
-
-        if (obstacle) {
-            if (dir == Vector2.up || dir == Vector2.down) {
-                if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
-                    transform.position = gc.centerPosition(transform.position);
-                    return;
+            } else if (dir == Vector2.up || dir == Vector2.down) {
+                if (dir.y * (transform.position.y - gc.centerPosition(transform.position).y) < 0) {
+                    return true;
+                } else {
+                    return false;
                 }
+
             } else {
-                if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
-                    transform.position = gc.centerPosition(transform.position);
-                    return;
-                }
+                Debug.Log("PutaVida.exception: Impossible direction");
             }
+
         }
-
-        transform.Translate(dir * moveConst);
-
-        //if (dir == Vector2.up || dir == Vector2.down) {
-
-        //} else {
-
-        //}
+        return true; // Próxima tile sem obstáculos
     }
-
-    //void newbombTranslate(Vector2 dir) {
-    //    float moveConst = Time.deltaTime * 7; // BETA. 
-
-    //    if (true) {
-    //        if (dir == Vector2.up || dir == Vector2.down) {
-    //            if (Mathf.Abs(transform.position.y - gc.centerPosition(transform.position).y) <= 0.1) {
-    //                transform.position = gc.centerPosition(transform.position);
-    //                return;
-    //            }
-    //        } else {
-    //            if (Mathf.Abs(transform.position.x - gc.centerPosition(transform.position).x) <= 0.1) {
-    //                transform.position = gc.centerPosition(transform.position);
-    //                return;
-    //            }
-    //        }
-    //    }
-
-    //    transform.Translate(dir * moveConst);
-    //}
-
-
 
     #endregion
 }

@@ -41,15 +41,15 @@ public class GridController : Singleton<GridController> {
 
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
-        newtileMainContent(new Vector2(2, 1));
+        //newtileMainContent(new Vector2(2, 1));
     }
 	
 	// Update is called once per frame
 	void Update () {
         if (Input.GetKeyDown(KeyCode.O)) {
-            newtileMainContent(new Vector2(2, 2));
+            Debug.Log(tileContentOnZOrders(new Vector2(2, 2), new int[] { 1, 2 }).Count);
         }
-	}
+    }
 
     /// <summary>
     /// Cria e posiciona os blocos destrutíveis no mapa. Também define se eles terão items.
@@ -153,7 +153,7 @@ public class GridController : Singleton<GridController> {
     /// <summary>
     /// Retorna o ZO (gameObject com ZOrder) presente na camada de objects da tile.
     /// </summary>
-    public IZOrder tileMainContent(Vector2 pos) {
+    public IZOrder oldtileMainContent(Vector2 pos) {
         Vector2 center = centerPosition(pos); // Garante centralização
 
         RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up, 0.05f);
@@ -171,9 +171,12 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
-    /// BETA
+    /// Retorna o ZO (gameObject com ZOrder) presente na camada de objects da tile.
+    /// 
+    /// Há o caso especial pra GridBlocks e Border no if pois, por serem feitos pelo tilemap brush, a posição real deles não é na tile.
+    ///     Porém, por ocuparem apenas uma tile fixa e tile.size > overlapBox.size, não é necessário fazer aquela garantia de posição.
     /// </summary>
-    public IZOrder newtileMainContent(Vector2 pos) {
+    public IZOrder tileMainContent(Vector2 pos) {
         Vector2 center = centerPosition(pos); // Garante centralização
 
         Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
@@ -181,8 +184,10 @@ public class GridController : Singleton<GridController> {
             IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null) {
                 if (zo.ZOrder == GridController.ZObjects && 
-                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks"))) {
-                    Debug.Log(zo.gameObject.name + " - " + zo.gameObject.tag);
+                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
+                    zo.gameObject.CompareTag("Border"))) {
+                    //Debug.Log(zo.gameObject.name + " - " + zo.gameObject.tag);
+                    return zo;
                 }
             } else {
                 Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
@@ -190,6 +195,34 @@ public class GridController : Singleton<GridController> {
         }
         
         return null; // Tile vazia na cada de objects.
+    }
+
+    /// <summary>
+    /// Retorna todos os zobjetos nas zorders desejada (eu tenho que melhorar essa nomenclatura lol)
+    /// 
+    /// Talvez eu faça um overload com o tileMainContent.
+    /// </summary>
+    /// <param name="pos">Posição da tile</param>
+    /// <param name="zorders">Camadas ZOrder desejadas</param>
+    /// <returns></returns>
+    public List<IZOrder> tileContentOnZOrders(Vector2 pos, int[] zorders) {
+        Vector2 center = centerPosition(pos); // Garante centralização
+        List<IZOrder> zobjs = new List<IZOrder>();
+
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
+        foreach (Collider2D collider in collidersInTile) {
+            IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            if (zo != null) {
+                if (UnityEditor.ArrayUtility.Contains(zorders, zo.ZOrder) &&
+                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
+                    zo.gameObject.CompareTag("Border"))) {
+                    zobjs.Add(zo);
+                }
+            } else {
+                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
+            }
+        }
+        return zobjs; // Tile vazia na cada de objects.
     }
 
     /// <summary>

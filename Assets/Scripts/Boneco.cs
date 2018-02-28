@@ -69,6 +69,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     // Use this for initialization
     void Start () {
         gc = GridController.instance;
+        zOrder = 2;
 
         if (!gc.randomBlocks) {
             FirePower = 6;
@@ -200,7 +201,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     /// <summary>
     /// Define qual será o movimento realizado pelo boneco de acordo com o input e a posição atual.
     /// A ideia do movimento no jogo é sempre se manter no centro de um dos eixos da tile (ou ir a ele nas "curvas").
-    /// - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não é ideal. 
+    /// - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não acho ideal. 
     ///     O boneco fica com um "Efeito Luigi". Vai um pouco mais à frente do que deve nos movimentos.
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
