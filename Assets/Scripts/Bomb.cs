@@ -80,16 +80,16 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// Alguma explosão causou a explosão dessa bomba.
+    /// Bomba para tudo e tem sua explosão forçada por um agente externo
+    /// 
+    /// ATENÇÃO (1º/03/18): Parar a coroutine do slideCR não para imediatamente o translate já feito nela.
+    ///     Por causa disso, tive que meter dois centerPos (antes e depois do wait) pra garantir que a bomba 
+    ///     explodirá no local certo e sem movimentos extremamente bruscos. Deve haver uma solução melhor, tho...
     /// </summary>
     /// <param name="collision"> Colisão que causou a explosão dessa bomba. </param>
     public IEnumerator forceExplode(GameObject triggerExplosion) {
         if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
-            
-            //if(triggerExplosion.GetComponent<Collider2D>() != null) { // Just in case...
-            //    triggerExplosion.GetComponent<Collider2D>().enabled = false;
-            //}
-            
+
             state = Exploding;
             if (tickCR != null) {
                 StopCoroutine(tickCR);
@@ -98,8 +98,9 @@ public class Bomb : MonoBehaviour, IZOrder {
                 StopCoroutine(slideCR);
             }
             transform.position = gc.centerPosition(triggerExplosion.transform.position);
-
+            
             yield return new WaitForSeconds(0.12f);
+            transform.position = gc.centerPosition(triggerExplosion.transform.position);
             explode();
             Destroy(triggerExplosion);
         }

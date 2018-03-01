@@ -118,6 +118,9 @@ public class Boneco : MonoBehaviour, IZOrder {
 
         #endregion
 
+        // Esboço lógica do chute
+        //if (xInput && !yInput && !xMove && bomba do lado) { chuta bomba}
+
         if (Input.GetKeyDown(KeyCode.Z)){// || Input.GetKeyDown(KeyCode.A)) {
             placeBomb();
         }
