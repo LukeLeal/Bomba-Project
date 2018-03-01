@@ -130,7 +130,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     // Cria os objetos das explosões em uma direção, se possível
     void createExplosion(Vector2 dir) {
         IZOrder zo;
-        int range = calculateRangeBOX(dir, out zo);
+        int range = calculateRange(dir, out zo);
 
         Vector2 curPos = (Vector2) transform.position + dir;
         while (range > 0) {
@@ -153,13 +153,13 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// BETA
+    /// BETA - BoxCast
     /// Define o alcance da explosão na determinada direção
     /// Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Alcance em tiles </returns>
-    int calculateRangeBOX(Vector2 dir, out IZOrder zo) {
+    int calculateRange(Vector2 dir, out IZOrder zo) {
         List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.BoxCastAll(transform.position, new Vector2(0.9f, 0.9f), 0f, dir, power));
         
         Vector2 lastExplosionPos = Vector2.positiveInfinity;
@@ -262,6 +262,17 @@ public class Bomb : MonoBehaviour, IZOrder {
 
         }
         return true; // Próxima tile sem obstáculos
+    }
+
+    /// <summary>
+    /// Determina se um boneco pode ou não chutar essa bomba.
+    /// if sujeito a mudanças.
+    /// </summary>
+    public bool canKick() {
+        if (state != Exploding && ZOrder == GridController.ZObjects && slideCR == null) {
+            return true;
+        }
+        return false;
     }
 
     #endregion

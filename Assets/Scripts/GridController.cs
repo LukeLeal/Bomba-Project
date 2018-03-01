@@ -73,7 +73,7 @@ public class GridController : Singleton<GridController> {
             }
             curPos += Vector2.up;
             y++;
-        } while (y < 100); // Limite pra impedir loop infinito :P
+        } while (y < 100); // Limite arbitrário pra impedir loop infinito :P
 
         do {
             IZOrder zo = tileMainContent(curPos + Vector2.right);
@@ -186,7 +186,7 @@ public class GridController : Singleton<GridController> {
                 if (zo.ZOrder == GridController.ZObjects && 
                     (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
                     zo.gameObject.CompareTag("Border"))) {
-                    //Debug.Log(zo.gameObject.name + " - " + zo.gameObject.tag);
+
                     return zo;
                 }
             } else {
@@ -216,6 +216,7 @@ public class GridController : Singleton<GridController> {
                 if (UnityEditor.ArrayUtility.Contains(zorders, zo.ZOrder) &&
                     (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
                     zo.gameObject.CompareTag("Border"))) {
+
                     zobjs.Add(zo);
                 }
             } else {
