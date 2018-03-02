@@ -15,9 +15,9 @@ public class Boneco : MonoBehaviour, IZOrder {
     int bombsMax = 1; // Quantidade de bombas do boneco
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco
-    bool kick = false;
-    //bool punch;
-    //bool hold;
+    bool hasKick = false;
+    //bool hasPunch;
+    //bool hasHold;
     bool dead = false;
     int zOrder;
 
@@ -64,6 +64,10 @@ public class Boneco : MonoBehaviour, IZOrder {
         set { dead = value; }
     }
 
+    public Vector2 curTile() {
+        return gc.centerPosition(transform.position);
+    }
+
     #endregion
 
     // Use this for initialization
@@ -74,6 +78,7 @@ public class Boneco : MonoBehaviour, IZOrder {
         if (!gc.randomBlocks) {
             FirePower = 6;
             BombsMax = 20;
+            hasKick = true;
         }
 	}
 	
@@ -118,8 +123,25 @@ public class Boneco : MonoBehaviour, IZOrder {
 
         #endregion
 
-        // Esboço lógica do chute
-        //if (xInput && !yInput && !xMove && bomba do lado) { chuta bomba}
+        if (hasKick) {
+            if (!xMove && !yMove) {
+                if (xInput) {
+                    Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
+                    Vector2 nextTile = curTile() + dir;
+                    IZOrder content = gc.tileMainContent(nextTile);
+                    if (content != null && content.gameObject.CompareTag("Bomb")) {
+                        content.gameObject.GetComponent<Bomb>().wasKicked(dir);
+                    }
+                } else if (yInput) {
+                    Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
+                    Vector2 nextTile = curTile() + dir;
+                    IZOrder content = gc.tileMainContent(nextTile);
+                    if (content != null && content.gameObject.CompareTag("Bomb")) {
+                        content.gameObject.GetComponent<Bomb>().wasKicked(dir);
+                    }
+                }
+            }
+        }
 
         if (Input.GetKeyDown(KeyCode.Z)){// || Input.GetKeyDown(KeyCode.A)) {
             placeBomb();
@@ -302,7 +324,7 @@ public class Boneco : MonoBehaviour, IZOrder {
                 break;
 
             case "Kick":
-                kick = true;
+                hasKick = true;
                 break;
 
             default:

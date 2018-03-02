@@ -208,10 +208,21 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     public void wasKicked(Vector2 dir) {
-        if(slideCR != null) {
-            StopCoroutine(slideCR);
+        if(canKick(dir)) {
+
+            slideCR = StartCoroutine(Slide(dir));
         }
-        slideCR = StartCoroutine(Slide(dir));
+    }
+
+    /// <summary>
+    /// Determina se um boneco pode ou não chutar essa bomba.
+    /// if sujeito a mudanças.
+    /// </summary>
+    public bool canKick(Vector2 dir) {
+        if (state != Exploding && ZOrder == GridController.ZObjects && slideCR == null && possibleSlide(dir)) {
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -229,6 +240,7 @@ public class Bomb : MonoBehaviour, IZOrder {
             yield return null;
         }
         transform.position = gc.centerPosition(transform.position);
+        slideCR = null;
     }
 
     /// <summary>
@@ -263,17 +275,6 @@ public class Bomb : MonoBehaviour, IZOrder {
 
         }
         return true; // Próxima tile sem obstáculos
-    }
-
-    /// <summary>
-    /// Determina se um boneco pode ou não chutar essa bomba.
-    /// if sujeito a mudanças.
-    /// </summary>
-    public bool canKick() {
-        if (state != Exploding && ZOrder == GridController.ZObjects && slideCR == null) {
-            return true;
-        }
-        return false;
     }
 
     #endregion
