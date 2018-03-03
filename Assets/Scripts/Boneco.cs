@@ -238,14 +238,14 @@ public class Boneco : MonoBehaviour, IZOrder {
         if (dir == "Vertical") {
             if (obstacle) {
                 // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
-                if (Mathf.Abs (transform.position.y - gc.centerPosition(transform.position).y) > 0.1) {
+                if (Mathf.Abs (transform.position.y - curTile().y) > 0.1) {
                     transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
                 } else {
-                    transform.position = new Vector2(transform.position.x, gc.centerPosition(transform.position).y);
+                    transform.position = new Vector2(transform.position.x, curTile().y);
                 }
 
             } else { // Vertical sem obstáculo
-                float dif = transform.position.x - gc.centerPosition(transform.position).x;
+                float dif = transform.position.x - curTile().x;
 
                 // Dependendo da distância do boneco ao centro do eixo horizontal da tile
                 if (Mathf.Abs(dif) > 0.1) {
@@ -254,7 +254,7 @@ public class Boneco : MonoBehaviour, IZOrder {
 
                 } else if (Mathf.Abs(dif) > 0) {
                     // Coloca no centro horizontal e segue o movimento vertical
-                    transform.position = new Vector2(gc.centerPosition(transform.position).x, transform.position.y);
+                    transform.position = new Vector2(curTile().x, transform.position.y);
                     transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
 
                 } else {
@@ -266,14 +266,14 @@ public class Boneco : MonoBehaviour, IZOrder {
         } else if (dir == "Horizontal") {
             if (obstacle) {
                 // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
-                if (Mathf.Abs (transform.position.x - gc.centerPosition(transform.position).x) > 0.1) {
+                if (Mathf.Abs (transform.position.x - curTile().x) > 0.1) {
                     transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
                 } else {
-                    transform.position = new Vector2(gc.centerPosition(transform.position).x, transform.position.y);
+                    transform.position = new Vector2(curTile().x, transform.position.y);
                 }
 
             } else { // Horizontal sem obstáculo
-                float dif = transform.position.y - gc.centerPosition(transform.position).y;
+                float dif = transform.position.y - curTile().y;
 
                 // Dependendo da distância do boneco ao centro do eixo vertical da tile
                 if (Mathf.Abs(dif) > 0.1) {
@@ -282,7 +282,7 @@ public class Boneco : MonoBehaviour, IZOrder {
 
                 } else if (Mathf.Abs(dif) > 0) {
                     // Coloca no centro vertical e segue o movimento horizontal
-                    transform.position = new Vector2(transform.position.x, gc.centerPosition(transform.position).y);
+                    transform.position = new Vector2(transform.position.x, curTile().y);
                     transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
 
                 } else {

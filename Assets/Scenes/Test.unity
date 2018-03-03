@@ -451,6 +451,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eefba683fab71d943b601ea05139e5fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  forceMusic: 2
 --- !u!1 &133805847
 GameObject:
   m_ObjectHideFlags: 0
@@ -1149,7 +1150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPersistant: 0
   grid: {fileID: 496002856}
-  randomBlocks: 0
+  randomBlocks: 1
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -4388,6 +4389,11 @@ Prefab:
         type: 2}
       propertyPath: m_audioClip
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 114296839283202708, guid: f56988698f892e14ea9c3c01ef64c937,
+        type: 2}
+      propertyPath: forceMusic
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: f56988698f892e14ea9c3c01ef64c937, type: 2}

@@ -152,26 +152,6 @@ public class GridController : Singleton<GridController> {
 
     /// <summary>
     /// Retorna o ZO (gameObject com ZOrder) presente na camada de objects da tile.
-    /// </summary>
-    public IZOrder oldtileMainContent(Vector2 pos) {
-        Vector2 center = centerPosition(pos); // Garante centralização
-
-        RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up, 0.05f);
-        foreach (RaycastHit2D hit in hits) {
-            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
-            if (zo != null) {
-                if (zo.ZOrder == GridController.ZObjects && centerPosition(hit.point) == center) {
-                    return zo;
-                }
-            } else {
-                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(hit.point));
-            }
-        }
-        return null; // Tile vazia.
-    }
-
-    /// <summary>
-    /// Retorna o ZO (gameObject com ZOrder) presente na camada de objects da tile.
     /// 
     /// Há o caso especial pra GridBlocks e Border no if pois, por serem feitos pelo tilemap brush, a posição real deles não é na tile.
     ///     Porém, por ocuparem apenas uma tile fixa e tile.size > overlapBox.size, não é necessário fazer aquela garantia de posição.
@@ -227,25 +207,30 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
-    /// Define aleatoriamente quais blocos terão items
+    /// Define aleatoriamente quais blocos terão quais items (aleatórios)
     /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de rng infinita
     /// </summary>
     /// <param name="rbs"> Lista de blocos </param>
-    void randomizeItems(List<RegularBlock> rbs) {
-        int itemsLeft = rbs.Count / 4;
-        Debug.Log(itemsLeft);
+    void randomizeItems(List<RegularBlock> blocks) {
+
+        List<Tuple<string, int>> itemList = new List<Tuple<string, int>> {
+            new Tuple<string, int>("BombUp", 8),
+            new Tuple<string, int>("FireUp", 5),
+            new Tuple<string, int>("Kick", 2)
+            //new Tuple<string, int>("BombUp", 10)
+        };
 
         do {
-            int rng = UnityEngine.Random.Range(0, rbs.Count);
-            if(rbs[rng].ItemName == "") {
-                if (itemsLeft % 2 == 0) {
-                    rbs[rng].ItemName = "BombUp"; 
-                } else {
-                    rbs[rng].ItemName = "FireUp"; 
+            int rngBlock = UnityEngine.Random.Range(0, blocks.Count);
+            if(blocks[rngBlock].ItemName == "") {
+                int rngItem = UnityEngine.Random.Range(0, itemList.Count);
+                blocks[rngBlock].ItemName = itemList[rngItem].item1;
+                itemList[rngItem].item2--;
+                if (itemList[rngItem].item2 <= 0) {
+                    itemList.RemoveAt(rngItem);
                 }
-                itemsLeft--;
             }
-        } while (itemsLeft > 0);
+        } while (itemList.Count > 0);
     }
 
     /// <summary>

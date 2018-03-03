@@ -11,6 +11,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
     Boneco owner; // Boneco dono da bomba. 
     GridController gc;
+    string sfxPath = "Sounds/SFX/"; // Caminho prox sound effects. Talvez torne isso numa constante global ou sei lá.
 
     public const int Ticking = 1;
     public const int NotTicking = 2;
@@ -62,6 +63,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         transform.position = gc.centerPosition(b.transform.position);
         ZOrder = GridController.ZObjects;
         state = Ticking;
+        GetComponent<AudioSource>().clip = (AudioClip) Resources.Load(sfxPath + "PlaceBomb");
         GetComponent<AudioSource>().Play();
         tickCR = StartCoroutine(tick());
     }
@@ -82,6 +84,8 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <summary>
     /// Bomba para tudo e tem sua explosão forçada por um agente externo
     /// 
+    /// triggerPos existe pq num caso muito específico triggerExplosion já tava destruido ao regular a posição, dando ruim.
+    /// 
     /// ATENÇÃO (1º/03/18): Parar a coroutine do slideCR não para imediatamente o translate já feito nela.
     ///     Por causa disso, tive que meter dois centerPos (antes e depois do wait) pra garantir que a bomba 
     ///     explodirá no local certo e sem movimentos extremamente bruscos. Deve haver uma solução melhor, tho...
@@ -89,7 +93,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <param name="collision"> Colisão que causou a explosão dessa bomba. </param>
     public IEnumerator forceExplode(GameObject triggerExplosion) {
         if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
-
+            Vector2 triggerPos = gc.centerPosition(triggerExplosion.transform.position);
             state = Exploding;
             if (tickCR != null) {
                 StopCoroutine(tickCR);
@@ -97,10 +101,10 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (slideCR != null) {
                 StopCoroutine(slideCR);
             }
-            transform.position = gc.centerPosition(triggerExplosion.transform.position);
+            transform.position = triggerPos;
             
             yield return new WaitForSeconds(0.12f);
-            transform.position = gc.centerPosition(triggerExplosion.transform.position);
+            transform.position = triggerPos;
             explode();
             Destroy(triggerExplosion);
         }
@@ -209,7 +213,8 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     public void wasKicked(Vector2 dir) {
         if(canKick(dir)) {
-
+            GetComponent<AudioSource>().clip = (AudioClip)Resources.Load(sfxPath + "KickBomb");
+            GetComponent<AudioSource>().Play();
             slideCR = StartCoroutine(Slide(dir));
         }
     }
