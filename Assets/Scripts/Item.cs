@@ -30,6 +30,7 @@ public class Item : MonoBehaviour, IZOrder {
         Destroy(gameObject);
     }
 
+    // Ao ser atingido por uma explosão, items param de bloquear explosões e se tornam explosões.
     void OnTriggerEnter2D(Collider2D collision) {
         if (collision.gameObject.CompareTag("Explosion")) {
             if (!isExploding) {

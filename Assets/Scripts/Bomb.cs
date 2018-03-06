@@ -84,16 +84,16 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <summary>
     /// Bomba para tudo e tem sua explosão forçada por um agente externo
     /// 
-    /// triggerPos existe pq num caso muito específico triggerExplosion já tava destruido ao regular a posição, dando ruim.
+    /// triggerPos existe pq num caso muito específico o trigger já tava destruido ao regular a posição, dando ruim.
     /// 
     /// ATENÇÃO (1º/03/18): Parar a coroutine do slideCR não para imediatamente o translate já feito nela.
     ///     Por causa disso, tive que meter dois centerPos (antes e depois do wait) pra garantir que a bomba 
     ///     explodirá no local certo e sem movimentos extremamente bruscos. Deve haver uma solução melhor, tho...
     /// </summary>
     /// <param name="collision"> Colisão que causou a explosão dessa bomba. </param>
-    public IEnumerator forceExplode(GameObject triggerExplosion) {
-        if (state != Exploding) { // Pra garantir que não vai explodir múltiplas vezes por motivos diversos :P
-            Vector2 triggerPos = gc.centerPosition(triggerExplosion.transform.position);
+    public IEnumerator forceExplode(GameObject trigger) {
+        if (state != Exploding) { 
+            Vector2 triggerPos = gc.centerPosition(trigger.transform.position);
             state = Exploding;
             if (tickCR != null) {
                 StopCoroutine(tickCR);
@@ -106,7 +106,7 @@ public class Bomb : MonoBehaviour, IZOrder {
             yield return new WaitForSeconds(0.12f);
             transform.position = triggerPos;
             explode();
-            Destroy(triggerExplosion);
+            Destroy(trigger);
         }
     }
 
@@ -125,8 +125,9 @@ public class Bomb : MonoBehaviour, IZOrder {
         createExplosion(Vector2.left);
 
         // Cria o centro da explosão
-        Explosion e = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), transform.position, Quaternion.identity); 
-        e.setup(owner, true);
+        Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), transform.position, Quaternion.identity);
+        // Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/ExplosionCenter"), transform.position, Quaternion.identity); 
+        center.setup(owner, true, false);
 
         owner.BombsUsed--;    
         Destroy(gameObject); // rip bomb
@@ -135,6 +136,17 @@ public class Bomb : MonoBehaviour, IZOrder {
     // Cria os objetos das explosões em uma direção, se possível
     void createExplosion(Vector2 dir) {
         IZOrder zo;
+        //string direction;
+        //if (dir == Vector2.up) {
+        //    direction = "Up";
+        //} else if (dir == Vector2.right) {
+        //    direction = "Right";
+        //} else if (dir == Vector2.down) {
+        //    direction = "Down";
+        //} else {
+        //    direction = "Left";
+        //}
+
         int range = calculateRange(dir, out zo);
 
         Vector2 curPos = (Vector2) transform.position + dir;
@@ -142,15 +154,14 @@ public class Bomb : MonoBehaviour, IZOrder {
             if (range == 1) {
 
                 if(zo != null) {
-                    // Cria uma pseudo-explosão no tile ocupado pelo outro objeto. Única função é ativar um trigger (se houver) no objeto.
-                    Explosion spriteLess = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
-                    spriteLess.GetComponent<SpriteRenderer>().enabled = false;
-                    spriteLess.setup(owner, false);
+                    // Cria pseudo explosão no tile já ocupado por outro objeto
+                    Explosion pseudoExplosion = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
+                    pseudoExplosion.setup(owner, false, true);
                     break;
                 }
             } 
             Explosion e = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
-            e.setup(owner, false);
+            e.setup(owner, false, false);
             curPos += dir;
             
             range--;
@@ -198,9 +209,12 @@ public class Bomb : MonoBehaviour, IZOrder {
         return Power; // Se não tem nada no caminho, range máximo
     }
 
-    void OnTriggerEnter2D(Collider2D collision) {
-        if(collision.GetComponent<Collider2D>().CompareTag("Explosion")) {
-            StartCoroutine(forceExplode(collision.gameObject));
+    void OnTriggerEnter2D(Collider2D collider) {
+        if(collider.CompareTag("Explosion")) {
+            if(collider.gameObject.GetComponent<Explosion>() != null && collider.gameObject.GetComponent<Explosion>().Pseudo) {
+                collider.enabled = false;
+            }
+            StartCoroutine(forceExplode(collider.gameObject));
             //Destroy(collision.gameObject); 
         } 
     }

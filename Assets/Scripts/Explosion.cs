@@ -6,6 +6,8 @@ public class Explosion : MonoBehaviour, IZOrder {
 
     Boneco owner;
     int zOrder;
+    bool pseudo; // pseudo-explosões são criadas em tiles já ocupadas por outro objeto. Única função é ativar um trigger (se houver) nele.
+        // Ao triggerar o outro objeto, sua colisão deve deixar de existir.
 
     public int ZOrder {
         get { return zOrder; }
@@ -13,6 +15,10 @@ public class Explosion : MonoBehaviour, IZOrder {
             GetComponent<Renderer>().sortingOrder = value;
             zOrder = value;
         }
+    }
+
+    public bool Pseudo {
+        get { return pseudo; }
     }
 
     // Use this for initialization
@@ -25,7 +31,7 @@ public class Explosion : MonoBehaviour, IZOrder {
 
 	}
 
-    public void setup(Boneco b, bool playSFX) {
+    public void setup(Boneco b, bool playSFX, bool pseudo) {
         owner = b;
         zOrder = GetComponent<Renderer>().sortingOrder;
 
@@ -38,6 +44,11 @@ public class Explosion : MonoBehaviour, IZOrder {
                 player.clip = sfx;
                 player.Play();
             }
+        }
+
+        if (pseudo) {
+            this.pseudo = pseudo;
+            GetComponent<SpriteRenderer>().enabled = false;
         }
         
         StartCoroutine(exploding());
