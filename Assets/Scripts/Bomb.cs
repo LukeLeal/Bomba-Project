@@ -125,7 +125,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         createExplosion(Vector2.left);
 
         // Cria o centro da explosão
-        Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), transform.position, Quaternion.identity);
+        Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/Explosions/ExplosionCenter"), transform.position, Quaternion.identity);
         // Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/ExplosionCenter"), transform.position, Quaternion.identity); 
         center.setup(owner, true, false);
 
@@ -136,16 +136,17 @@ public class Bomb : MonoBehaviour, IZOrder {
     // Cria os objetos das explosões em uma direção, se possível
     void createExplosion(Vector2 dir) {
         IZOrder zo;
-        //string direction;
-        //if (dir == Vector2.up) {
-        //    direction = "Up";
-        //} else if (dir == Vector2.right) {
-        //    direction = "Right";
-        //} else if (dir == Vector2.down) {
-        //    direction = "Down";
-        //} else {
-        //    direction = "Left";
-        //}
+        string path = "Prefabs/Explosions/Explosion";
+        string direction;
+        if (dir == Vector2.up) {
+            direction = "Up";
+        } else if (dir == Vector2.right) {
+            direction = "Right";
+        } else if (dir == Vector2.down) {
+            direction = "Down";
+        } else {
+            direction = "Left";
+        }
 
         int range = calculateRange(dir, out zo);
 
@@ -158,9 +159,13 @@ public class Bomb : MonoBehaviour, IZOrder {
                     Explosion pseudoExplosion = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
                     pseudoExplosion.setup(owner, false, true);
                     break;
+                } else {
+                    Explosion end = Instantiate(Resources.Load<Explosion>(path + direction + "End"), curPos, Quaternion.identity);
+                    end.setup(owner, false, false);
+                    break;
                 }
             } 
-            Explosion e = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
+            Explosion e = Instantiate(Resources.Load<Explosion>(path + direction), curPos, Quaternion.identity);
             e.setup(owner, false, false);
             curPos += dir;
             
