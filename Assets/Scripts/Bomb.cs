@@ -11,7 +11,8 @@ public class Bomb : MonoBehaviour, IZOrder {
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
     Boneco owner; // Boneco dono da bomba. 
     GridController gc;
-    string sfxPath = "Sounds/SFX/"; // Caminho prox sound effects. Talvez torne isso numa constante global ou sei lá.
+    string sfxPath = "Sounds/SFX/"; // Caminho pros sound effects. Talvez torne isso numa constante global ou sei lá.
+    string explosionPath = "Prefabs/Explosions/Explosion"; // Caminho pros prefabs das explosões
 
     public const int Ticking = 1;
     public const int NotTicking = 2;
@@ -42,7 +43,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     // Update is called once per frame
     void Update () {
 
-        // Teste de chute de bomba
+        // Testes de chute de bomba
         if (Input.GetKeyDown(KeyCode.K)) {
             wasKicked(Vector2.left);
         }
@@ -68,6 +69,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         tickCR = StartCoroutine(tick());
     }
 
+    #region Ticking & pre-explosion
     /// <summary>
     /// Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado (provavelmente usando deltaTime).
     /// </summary>
@@ -90,7 +92,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     ///     Por causa disso, tive que meter dois centerPos (antes e depois do wait) pra garantir que a bomba 
     ///     explodirá no local certo e sem movimentos extremamente bruscos. Deve haver uma solução melhor, tho...
     /// </summary>
-    /// <param name="collision"> Colisão que causou a explosão dessa bomba. </param>
+    /// <param name="trigger"> Objeto cujo a colisão causou a explosão dessa bomba. </param>
     public IEnumerator forceExplode(GameObject trigger) {
         if (state != Exploding) { 
             Vector2 triggerPos = gc.centerPosition(trigger.transform.position);
@@ -109,7 +111,9 @@ public class Bomb : MonoBehaviour, IZOrder {
             Destroy(trigger);
         }
     }
+#endregion
 
+    #region Sequência de criação da explosão
     /// <summary>
     /// Cria os rastros da explosão nas direções possíveis e o seu centro.
     /// </summary>
@@ -125,18 +129,21 @@ public class Bomb : MonoBehaviour, IZOrder {
         createExplosion(Vector2.left);
 
         // Cria o centro da explosão
-        Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/Explosions/ExplosionCenter"), transform.position, Quaternion.identity);
-        // Explosion center = Instantiate(Resources.Load<Explosion>("Prefabs/ExplosionCenter"), transform.position, Quaternion.identity); 
+        Explosion center = Instantiate(Resources.Load<Explosion>(explosionPath + "Center"), transform.position, Quaternion.identity);
         center.setup(owner, true, false);
 
         owner.BombsUsed--;    
-        Destroy(gameObject); // rip bomb
+        Destroy(gameObject);
     }
 
-    // Cria os objetos das explosões em uma direção, se possível
+    /// <summary>
+    /// Se possível, cria os objetos das explosões em uma direção
+    /// ATENÇÃO (07/03/18): Não estou satisfeito com a pseudo-explosão. Mudanças Soon tm. 
+    ///     Talvez interagindo diretamente com o objeto a ser explodido ao invés de depender de colliders seja melhor.
+    /// </summary>
+    /// <param name="dir"></param>
     void createExplosion(Vector2 dir) {
         IZOrder zo;
-        string path = "Prefabs/Explosions/Explosion";
         string direction;
         if (dir == Vector2.up) {
             direction = "Up";
@@ -160,12 +167,12 @@ public class Bomb : MonoBehaviour, IZOrder {
                     pseudoExplosion.setup(owner, false, true);
                     break;
                 } else {
-                    Explosion end = Instantiate(Resources.Load<Explosion>(path + direction + "End"), curPos, Quaternion.identity);
+                    Explosion end = Instantiate(Resources.Load<Explosion>(explosionPath + direction + "End"), curPos, Quaternion.identity);
                     end.setup(owner, false, false);
                     break;
                 }
             } 
-            Explosion e = Instantiate(Resources.Load<Explosion>(path + direction), curPos, Quaternion.identity);
+            Explosion e = Instantiate(Resources.Load<Explosion>(explosionPath + direction), curPos, Quaternion.identity);
             e.setup(owner, false, false);
             curPos += dir;
             
@@ -174,9 +181,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// BETA - BoxCast
     /// Define o alcance da explosão na determinada direção
-    /// Atenção (16/01/2018): Hit.point no curExpPos dá ruim. Deve ser por causa do tamanho / posição do collider da explosão.
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Alcance em tiles </returns>
@@ -199,7 +204,7 @@ public class Bomb : MonoBehaviour, IZOrder {
                 continue;
             }
 
-            // Elementos que estão na camada de objetos e items finalizam o alcance da explosão.
+            // Elementos que estão na camada de objetos ou items finalizam o alcance da explosão.
             zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null && zo.ZOrder != GridController.ZObjects) {
                 if (zo.gameObject.tag != "Item") {
@@ -213,25 +218,15 @@ public class Bomb : MonoBehaviour, IZOrder {
         zo = null;
         return Power; // Se não tem nada no caminho, range máximo
     }
+    #endregion
 
-    void OnTriggerEnter2D(Collider2D collider) {
-        if(collider.CompareTag("Explosion")) {
-            if(collider.gameObject.GetComponent<Explosion>() != null && collider.gameObject.GetComponent<Explosion>().Pseudo) {
-                collider.enabled = false;
-            }
-            StartCoroutine(forceExplode(collider.gameObject));
-            //Destroy(collision.gameObject); 
-        } 
-    }
-
-    #region Beta Kick Stuff
-
+    #region Kick Stuff
     /// <summary>
-    /// Inicia o processo de movimento da bomba devido a chute. Chamado pelo Boneco
+    /// Inicia o processo de movimento da bomba (se possível) devido a chute do Boneco
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     public void wasKicked(Vector2 dir) {
-        if(canKick(dir)) {
+        if (state != Exploding && ZOrder == GridController.ZObjects && slideCR == null && possibleSlide(dir)) {
             GetComponent<AudioSource>().clip = (AudioClip)Resources.Load(sfxPath + "KickBomb");
             GetComponent<AudioSource>().Play();
             slideCR = StartCoroutine(Slide(dir));
@@ -239,28 +234,14 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// Determina se um boneco pode ou não chutar essa bomba.
-    /// if sujeito a mudanças.
-    /// </summary>
-    public bool canKick(Vector2 dir) {
-        if (state != Exploding && ZOrder == GridController.ZObjects && slideCR == null && possibleSlide(dir)) {
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
     /// Computa o movimento terrestre da bomba.
     /// </summary>
-    /// <returns></returns>
     IEnumerator Slide(Vector2 dir) {
         transform.position = gc.centerPosition(transform.position); // Just in case...
 
         while (possibleSlide(dir)) {
             float moveConst = Time.deltaTime * 7; // BETA. 
             transform.Translate(dir * moveConst);
-
-            //yield return new WaitForSeconds(0.12f);
             yield return null;
         }
         transform.position = gc.centerPosition(transform.position);
@@ -268,14 +249,13 @@ public class Bomb : MonoBehaviour, IZOrder {
     }
 
     /// <summary>
-    /// BETA
     /// Verifica se o slide (movimento por chute) é possível até a tile à frente
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Movimento possível ou não </returns>
     bool possibleSlide(Vector2 dir) {
 
-        List <IZOrder> zos = gc.tileContentOnZOrders((Vector2)transform.position + dir, new int[] { 1, 2 });
+        List<IZOrder> zos = gc.tileContentOnZOrders((Vector2)transform.position + dir, new int[] { 1, 2 });
         if (zos.Count > 0) {
 
             // Só continua o movimento se estiver antes do centro da tile atual
@@ -283,7 +263,7 @@ public class Bomb : MonoBehaviour, IZOrder {
                 if (dir.x * (transform.position.x - gc.centerPosition(transform.position).x) < 0) {
                     return true;
                 } else {
-                    return false; 
+                    return false;
                 }
 
             } else if (dir == Vector2.up || dir == Vector2.down) {
@@ -296,10 +276,18 @@ public class Bomb : MonoBehaviour, IZOrder {
             } else {
                 Debug.Log("PutaVida.exception: Impossible direction");
             }
-
         }
         return true; // Próxima tile sem obstáculos
     }
-
     #endregion
+
+    void OnTriggerEnter2D(Collider2D collider) {
+        if(collider.CompareTag("Explosion")) {
+            if(collider.gameObject.GetComponent<Explosion>() != null && collider.gameObject.GetComponent<Explosion>().Pseudo) {
+                collider.enabled = false;
+            }
+            StartCoroutine(forceExplode(collider.gameObject));
+        } 
+    }
+
 }

@@ -6,7 +6,7 @@ public class BGMPlayer : MonoBehaviour {
 
     string basePath = "Sounds/BGM/";
     AudioSource source; // AudioSource do objeto. Responsável por tocar os sons.
-    public int forceMusic;
+    public int forceMusic; // Musica a ser tocada. -1 se random. Valor definido no editor.
 
     Tuple<string, int, int> curMusicInfo; // <Name, LoopStart, LoopEnd>
     Tuple<string, int, int>[] musicsInfo = {

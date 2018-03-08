@@ -42,9 +42,9 @@ public class RegularBlock : MonoBehaviour, IZOrder {
         Destroy(gameObject);
     }
 
-    void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.GetComponent<Collider2D>().CompareTag("Explosion")) {
-            Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
+    void OnTriggerEnter2D(Collider2D collider) {
+        if (collider.CompareTag("Explosion")) {
+            Destroy(collider.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
             if (!isExploding) {
                 isExploding = true;
                 GetComponent<SpriteRenderer>().color = Color.red;

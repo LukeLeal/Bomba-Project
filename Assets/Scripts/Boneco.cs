@@ -85,7 +85,7 @@ public class Boneco : MonoBehaviour, IZOrder {
 	// Update is called once per frame
 	void Update () {
 
-        #region Movement
+        #region Update movement stuff
 
         // (12/01/18): xInput e yInput não utilizados atm
         bool xInput = false, yInput = false, xMove = false, yMove = false, xObstacle = false, yObstacle = false;
@@ -152,6 +152,7 @@ public class Boneco : MonoBehaviour, IZOrder {
         }
     }
 
+#region Movement functions
     /// <summary>
     /// Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
     /// </summary>
@@ -292,6 +293,7 @@ public class Boneco : MonoBehaviour, IZOrder {
             }
         }
     }
+#endregion
 
     /// <summary>
     /// Cria bomba no tile atual se possível
@@ -342,12 +344,12 @@ public class Boneco : MonoBehaviour, IZOrder {
         dead = false;
     }
 
-    void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.gameObject.CompareTag("Explosion")) {
+    void OnTriggerEnter2D(Collider2D collider) {
+        if (collider.CompareTag("Explosion")) {
             GetComponent<SpriteRenderer>().color = Color.red;
             StartCoroutine(die());
-        } else if (collision.gameObject.CompareTag("Item")) {
-            gotItem(collision.gameObject.GetComponent<Item>());
+        } else if (collider.CompareTag("Item")) {
+            gotItem(collider.gameObject.GetComponent<Item>());
         }
     }
 

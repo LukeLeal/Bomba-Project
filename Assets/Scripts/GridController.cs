@@ -46,13 +46,14 @@ public class GridController : Singleton<GridController> {
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.GetKeyDown(KeyCode.O)) {
-            Debug.Log(tileContentOnZOrders(new Vector2(2, 2), new int[] { 1, 2 }).Count);
-        }
+        //if (Input.GetKeyDown(KeyCode.O)) {
+        //    Debug.Log(tileContentOnZOrders(new Vector2(2, 2), new int[] { 1, 2 }).Count);
+        //}
     }
 
+    #region Grid Setup
     /// <summary>
-    /// Cria e posiciona os blocos destrutíveis no mapa. Também define se eles terão items.
+    /// Cria e posiciona os blocos destrutíveis no mapa. 
     /// </summary>
     void generateBlocks() {
         // Verifica se o mapa está corretamente posicionado
@@ -117,6 +118,35 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
+    /// Define aleatoriamente quais blocos terão quais items (aleatórios)
+    /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de "rng infinita" no rngBlock
+    /// </summary>
+    /// <param name="rbs"> Lista de blocos </param>
+    void randomizeItems(List<RegularBlock> blocks) {
+
+        List<Tuple<string, int>> itemList = new List<Tuple<string, int>> {
+            new Tuple<string, int>("BombUp", 8),
+            new Tuple<string, int>("FireUp", 5),
+            new Tuple<string, int>("Kick", 2)
+            //new Tuple<string, int>("BombUp", 10)
+        };
+
+        do {
+            int rngBlock = UnityEngine.Random.Range(0, blocks.Count);
+            if (blocks[rngBlock].ItemName == "") {
+                int rngItem = UnityEngine.Random.Range(0, itemList.Count);
+                blocks[rngBlock].ItemName = itemList[rngItem].item1;
+                itemList[rngItem].item2--;
+                if (itemList[rngItem].item2 <= 0) {
+                    itemList.RemoveAt(rngItem);
+                }
+            }
+        } while (itemList.Count > 0);
+    }
+    #endregion
+
+    #region Utilidades
+    /// <summary>
     /// Acha a posição central da célula
     /// </summary>
     public Vector2 centerPosition(Vector2 pos) {
@@ -127,7 +157,9 @@ public class GridController : Singleton<GridController> {
 
     /// <summary>
     /// Acha a posição central da célula. Usado apenas no tratamento de certos raycasts e colisões.
-    /// - Em casos bem específicos, float ficava de brincation. "Float perdendo precisão wtf.png"
+    /// 
+    /// Em casos bem específicos, float ficava de brincation. Por isso os arredondamentos
+    /// - "Assets/Design & etc/Float perdendo precisão wtf.png"
     /// </summary>
     /// <param name="pos"> Posição </param>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
@@ -184,7 +216,6 @@ public class GridController : Singleton<GridController> {
     /// </summary>
     /// <param name="pos">Posição da tile</param>
     /// <param name="zorders">Camadas ZOrder desejadas</param>
-    /// <returns></returns>
     public List<IZOrder> tileContentOnZOrders(Vector2 pos, int[] zorders) {
         Vector2 center = centerPosition(pos); // Garante centralização
         List<IZOrder> zobjs = new List<IZOrder>();
@@ -205,33 +236,7 @@ public class GridController : Singleton<GridController> {
         }
         return zobjs; // Tile vazia na cada de objects.
     }
-
-    /// <summary>
-    /// Define aleatoriamente quais blocos terão quais items (aleatórios)
-    /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de rng infinita
-    /// </summary>
-    /// <param name="rbs"> Lista de blocos </param>
-    void randomizeItems(List<RegularBlock> blocks) {
-
-        List<Tuple<string, int>> itemList = new List<Tuple<string, int>> {
-            new Tuple<string, int>("BombUp", 8),
-            new Tuple<string, int>("FireUp", 5),
-            new Tuple<string, int>("Kick", 2)
-            //new Tuple<string, int>("BombUp", 10)
-        };
-
-        do {
-            int rngBlock = UnityEngine.Random.Range(0, blocks.Count);
-            if(blocks[rngBlock].ItemName == "") {
-                int rngItem = UnityEngine.Random.Range(0, itemList.Count);
-                blocks[rngBlock].ItemName = itemList[rngItem].item1;
-                itemList[rngItem].item2--;
-                if (itemList[rngItem].item2 <= 0) {
-                    itemList.RemoveAt(rngItem);
-                }
-            }
-        } while (itemList.Count > 0);
-    }
+#endregion 
 
     /// <summary>
     /// Método para testes de raycast.
