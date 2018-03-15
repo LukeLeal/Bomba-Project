@@ -87,7 +87,6 @@ public class Boneco : MonoBehaviour, IZOrder {
 
         #region Update movement stuff
 
-        // (12/01/18): xInput e yInput não utilizados atm
         bool xInput = false, yInput = false, xMove = false, yMove = false, xObstacle = false, yObstacle = false;
 
         // Análise dos inputs de movimento
@@ -340,13 +339,13 @@ public class Boneco : MonoBehaviour, IZOrder {
     IEnumerator die() {
         dead = true;
         yield return new WaitForSeconds(2.5f);
-        GetComponent<SpriteRenderer>().color = Color.white;
+        gameObject.GetComponentsInChildren<SpriteRenderer>()[1].color = Color.white;
         dead = false;
     }
 
     void OnTriggerEnter2D(Collider2D collider) {
         if (collider.CompareTag("Explosion")) {
-            GetComponent<SpriteRenderer>().color = Color.red;
+            gameObject.GetComponentsInChildren<SpriteRenderer>()[1].color = Color.red; // Beta
             StartCoroutine(die());
         } else if (collider.CompareTag("Item")) {
             gotItem(collider.gameObject.GetComponent<Item>());

@@ -163,7 +163,7 @@ public class Bomb : MonoBehaviour, IZOrder {
 
                 if(zo != null) {
                     // Cria pseudo explosão no tile já ocupado por outro objeto
-                    Explosion pseudoExplosion = Instantiate(Resources.Load<Explosion>("Prefabs/Explosion"), curPos, Quaternion.identity);
+                    Explosion pseudoExplosion = Instantiate(Resources.Load<Explosion>(explosionPath + direction), curPos, Quaternion.identity);
                     pseudoExplosion.setup(owner, false, true);
                     break;
                 } else {

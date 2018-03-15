@@ -1,0 +1,9 @@
+Sprite Credits
+
+Background tiles and blocks: Super Bomberman 5
+
+Items & Bomb Sprites: http://bomberman.wikia.com
+
+Explosions: Ripped by Plasma Captain (Super Bomberman 4) - https://www.spriters-resource.com/snes/sbomber4/sheet/59913/
+
+White Bomberman: Ripped by Zanaku (Super Bomberman 5) - https://www.spriters-resource.com/snes/sbomber5/sheet/7943/
