@@ -41,15 +41,19 @@ public class GridController : Singleton<GridController> {
 
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
+        //newtileMainContent(new Vector2(2, 1));
     }
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        //if (Input.GetKeyDown(KeyCode.O)) {
+        //    Debug.Log(tileContentOnZOrders(new Vector2(2, 2), new int[] { 1, 2 }).Count);
+        //}
+    }
 
+    #region Grid Setup
     /// <summary>
-    /// Cria e posiciona os blocos destrutíveis no mapa. Também define se eles terão items.
+    /// Cria e posiciona os blocos destrutíveis no mapa. 
     /// </summary>
     void generateBlocks() {
         // Verifica se o mapa está corretamente posicionado
@@ -70,7 +74,7 @@ public class GridController : Singleton<GridController> {
             }
             curPos += Vector2.up;
             y++;
-        } while (y < 100); // Limite pra impedir loop infinito :P
+        } while (y < 100); // Limite arbitrário pra impedir loop infinito :P
 
         do {
             IZOrder zo = tileMainContent(curPos + Vector2.right);
@@ -114,6 +118,35 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
+    /// Define aleatoriamente quais blocos terão quais items (aleatórios)
+    /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de "rng infinita" no rngBlock
+    /// </summary>
+    /// <param name="rbs"> Lista de blocos </param>
+    void randomizeItems(List<RegularBlock> blocks) {
+
+        List<Tuple<string, int>> itemList = new List<Tuple<string, int>> {
+            new Tuple<string, int>("BombUp", 8),
+            new Tuple<string, int>("FireUp", 5),
+            new Tuple<string, int>("Kick", 2)
+            //new Tuple<string, int>("BombUp", 10)
+        };
+
+        do {
+            int rngBlock = UnityEngine.Random.Range(0, blocks.Count);
+            if (blocks[rngBlock].ItemName == "") {
+                int rngItem = UnityEngine.Random.Range(0, itemList.Count);
+                blocks[rngBlock].ItemName = itemList[rngItem].item1;
+                itemList[rngItem].item2--;
+                if (itemList[rngItem].item2 <= 0) {
+                    itemList.RemoveAt(rngItem);
+                }
+            }
+        } while (itemList.Count > 0);
+    }
+    #endregion
+
+    #region Utilidades
+    /// <summary>
     /// Acha a posição central da célula
     /// </summary>
     public Vector2 centerPosition(Vector2 pos) {
@@ -124,13 +157,15 @@ public class GridController : Singleton<GridController> {
 
     /// <summary>
     /// Acha a posição central da célula. Usado apenas no tratamento de certos raycasts e colisões.
-    /// - Em casos bem específicos, float ficava de brincation. "Float perdendo precisão wtf.png"
+    /// 
+    /// Em casos bem específicos, float ficava de brincation. Por isso os arredondamentos
+    /// - "Assets/Design & etc/Float perdendo precisão wtf.png"
     /// </summary>
     /// <param name="pos"> Posição </param>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Posição centralizada na devida célula </returns>
     public Vector2 centerPosition(Vector2 pos, Vector2 dir) {
-        pos = new Vector2((float)Math.Round(pos.x, 3), (float)Math.Round(pos.y, 3)); // Pra garantir precisão
+        pos = new Vector2((float)Math.Round(pos.x, 2), (float)Math.Round(pos.y, 2)); // Pra garantir precisão
 
         if (dir == Vector2.left || dir == Vector2.right) {
             if(Mathf.Abs(pos.x) % 1 == 0.5) {
@@ -149,45 +184,59 @@ public class GridController : Singleton<GridController> {
 
     /// <summary>
     /// Retorna o ZO (gameObject com ZOrder) presente na camada de objects da tile.
+    /// 
+    /// Há o caso especial pra GridBlocks e Border no if pois, por serem feitos pelo tilemap brush, a posição real deles não é na tile.
+    ///     Porém, por ocuparem apenas uma tile fixa e tile.size > overlapBox.size, não é necessário fazer aquela garantia de posição.
     /// </summary>
     public IZOrder tileMainContent(Vector2 pos) {
         Vector2 center = centerPosition(pos); // Garante centralização
 
-        RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up, 0.05f);
-        foreach (RaycastHit2D hit in hits) {
-            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
+        foreach (Collider2D collider in collidersInTile) {
+            IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
             if (zo != null) {
-                if (zo.ZOrder == GridController.ZObjects && centerPosition(hit.point) == center) {
+                if (zo.ZOrder == GridController.ZObjects && 
+                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
+                    zo.gameObject.CompareTag("Border"))) {
+
                     return zo;
                 }
             } else {
-                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(hit.point));
+                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
             }
         }
-        return null; // Tile vazia.
+        
+        return null; // Tile vazia na cada de objects.
     }
 
     /// <summary>
-    /// Define aleatoriamente quais blocos terão items
-    /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de rng infinita
+    /// Retorna todos os zobjetos nas zorders desejada (eu tenho que melhorar essa nomenclatura lol)
+    /// 
+    /// Talvez eu faça um overload com o tileMainContent.
     /// </summary>
-    /// <param name="rbs"> Lista de blocos </param>
-    void randomizeItems(List<RegularBlock> rbs) {
-        int itemsLeft = rbs.Count / 4;
-        Debug.Log(itemsLeft);
+    /// <param name="pos">Posição da tile</param>
+    /// <param name="zorders">Camadas ZOrder desejadas</param>
+    public List<IZOrder> tileContentOnZOrders(Vector2 pos, int[] zorders) {
+        Vector2 center = centerPosition(pos); // Garante centralização
+        List<IZOrder> zobjs = new List<IZOrder>();
 
-        do {
-            int rng = UnityEngine.Random.Range(0, rbs.Count);
-            if(rbs[rng].ItemName == "") {
-                if (itemsLeft % 2 == 0) {
-                    rbs[rng].ItemName = "BombUp"; 
-                } else {
-                    rbs[rng].ItemName = "FireUp"; 
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
+        foreach (Collider2D collider in collidersInTile) {
+            IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            if (zo != null) {
+                if (UnityEditor.ArrayUtility.Contains(zorders, zo.ZOrder) &&
+                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
+                    zo.gameObject.CompareTag("Border"))) {
+
+                    zobjs.Add(zo);
                 }
-                itemsLeft--;
+            } else {
+                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
             }
-        } while (itemsLeft > 0);
+        }
+        return zobjs; // Tile vazia na cada de objects.
     }
+#endregion 
 
     /// <summary>
     /// Método para testes de raycast.

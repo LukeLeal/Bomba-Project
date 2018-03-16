@@ -26,19 +26,22 @@ public class Item : MonoBehaviour, IZOrder {
     }
 
     IEnumerator exploding() {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(Explosion.ExplosionTime);
         Destroy(gameObject);
     }
 
-    void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.gameObject.CompareTag("Explosion")) {
-            Destroy(collision.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
+    // Ao ser atingido por uma explosão, items param de bloquear explosões e se tornam explosões.
+    void OnTriggerEnter2D(Collider2D collider) {
+        if (collider.CompareTag("Explosion")) {
             if (!isExploding) {
+                Destroy(collider.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
                 gameObject.tag = "Explosion";
                 isExploding = true;
                 GetComponent<SpriteRenderer>().color = Color.red;
                 StartCoroutine(exploding());
             }
+        } else if (collider.CompareTag("Bomb")) {
+            Destroy(gameObject);
         }
     }
 }
