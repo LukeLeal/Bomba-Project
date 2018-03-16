@@ -15,7 +15,7 @@ public class BGMPlayer : MonoBehaviour {
         new Tuple<string, int, int>("Super Bomberman 4 - Battle Theme", 0, int.MaxValue), // sdds loop
         new Tuple<string, int, int>("Super Bomberman 4 - Level 1", 0, int.MaxValue),
         new Tuple<string, int, int>("Super Bomberman 5 - Zone 1", 0, int.MaxValue),
-        new Tuple<string, int, int>("Super Bomberman 5 - Battle Theme 2", 0, int.MaxValue)
+        new Tuple<string, int, int>("Super Bomberman 5 - Battle Theme 2", 286720, 3039049)
         // new Tuple<string, int, int>("", 0, int.MaxValue),
     };
 
@@ -24,7 +24,7 @@ public class BGMPlayer : MonoBehaviour {
             source = gameObject.GetComponent<AudioSource>();
         }
         
-        if(forceMusic > 0 && forceMusic < musicsInfo.Length) {
+        if(forceMusic >= 0 && forceMusic < musicsInfo.Length) {
             curMusicInfo = musicsInfo[forceMusic];
         } else {
             curMusicInfo = musicsInfo[Random.Range(0, musicsInfo.Length)];

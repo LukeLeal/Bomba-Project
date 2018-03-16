@@ -75,7 +75,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// </summary>
     IEnumerator tick() {
         // #sdds animação
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(2.5f);
         state = Exploding;
         if (slideCR != null) {
             StopCoroutine(slideCR);
@@ -105,7 +105,7 @@ public class Bomb : MonoBehaviour, IZOrder {
             }
             transform.position = triggerPos;
             
-            yield return new WaitForSeconds(0.12f);
+            yield return new WaitForSeconds(0.075f); // No jogo original (SB5) é algo entre 0.07 e 0.08
             transform.position = triggerPos;
             explode();
             Destroy(trigger);

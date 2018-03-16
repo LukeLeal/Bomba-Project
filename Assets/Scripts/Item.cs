@@ -26,7 +26,7 @@ public class Item : MonoBehaviour, IZOrder {
     }
 
     IEnumerator exploding() {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(Explosion.ExplosionTime);
         Destroy(gameObject);
     }
 

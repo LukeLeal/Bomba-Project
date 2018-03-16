@@ -20,6 +20,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     //bool hasHold;
     bool dead = false;
     int zOrder;
+    string sfxPath = "Sounds/SFX/Boneco/";
 
     Vector2Int curDir = new Vector2Int();
 
@@ -142,7 +143,9 @@ public class Boneco : MonoBehaviour, IZOrder {
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Z)){// || Input.GetKeyDown(KeyCode.A)) {
+        // http://wiki.unity3d.com/index.php?title=Xbox360Controller
+        // ATENÇÃO (16/03/18): Sincronizar joystick com jogador quando tiver multiplayer. Só tá assim agora pq os ports ficam de brincation.
+        if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.JoystickButton1)) {
             placeBomb();
         }
 
@@ -228,6 +231,9 @@ public class Boneco : MonoBehaviour, IZOrder {
     /// A ideia do movimento no jogo é sempre se manter no centro de um dos eixos da tile (ou ir a ele nas "curvas").
     /// - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não acho ideal. 
     ///     O boneco fica com um "Efeito Luigi". Vai um pouco mais à frente do que deve nos movimentos.
+    /// - Update (16/03/2018): O "Efeito Luigi" aparentemente só ocorre quando usa teclado como input.    
+    ///     Até onde testei, o movimento usando controle de GameCube tá 10/10. A diferença deve ser por causa do analógico,
+    ///     mas não deixa de ser estranho... Devo ter feito alguma bosta nas fórmulas ai, ou o teclado é RUI mesmo hue.
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <param name="obstacle"> Se há algum elemento à frente que limita o movimento </param>
@@ -314,6 +320,7 @@ public class Boneco : MonoBehaviour, IZOrder {
             return;
         }
 
+        GetComponent<AudioSource>().clip = (AudioClip)Resources.Load(sfxPath + "GotItem");
         GetComponent<AudioSource>().Play();
         switch (item.name) {
             case "FireUp": 
@@ -337,15 +344,17 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     // BETA
     IEnumerator die() {
-        dead = true;
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(1.5f);
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].color = Color.white;
         dead = false;
     }
 
     void OnTriggerEnter2D(Collider2D collider) {
-        if (collider.CompareTag("Explosion")) {
+        if (collider.CompareTag("Explosion") && !dead) {
+            dead = true;
             gameObject.GetComponentsInChildren<SpriteRenderer>()[1].color = Color.red; // Beta
+            GetComponent<AudioSource>().clip = (AudioClip)Resources.Load(sfxPath + "Death");
+            GetComponent<AudioSource>().Play();
             StartCoroutine(die());
         } else if (collider.CompareTag("Item")) {
             gotItem(collider.gameObject.GetComponent<Item>());

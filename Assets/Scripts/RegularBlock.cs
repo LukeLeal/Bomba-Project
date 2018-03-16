@@ -33,7 +33,7 @@ public class RegularBlock : MonoBehaviour, IZOrder {
 	}
 
     IEnumerator exploding() {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(Explosion.ExplosionTime);
         if(ItemName != "") {
             Item i = Instantiate(Resources.Load<Item>("Prefabs/" + ItemName), GridController.instance.centerPosition(transform.position), 
                 Quaternion.identity);

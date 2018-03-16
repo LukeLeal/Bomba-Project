@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Explosion : MonoBehaviour, IZOrder {
 
+    public const float ExplosionTime = 0.5f;
     Boneco owner;
     int zOrder;
+    bool center;
     bool pseudo; // pseudo-explosões são criadas em tiles já ocupadas por outro objeto. Única função é ativar um trigger (se houver) nele.
         // Ao triggerar o outro objeto, sua colisão deve deixar de existir.     
     // ATENÇÃO (07/03/18): Não estou satisfeito com a pseudo-explosão. Mudanças Soon tm. 
@@ -43,7 +45,7 @@ public class Explosion : MonoBehaviour, IZOrder {
     public void setup(Boneco b, bool center, bool pseudo) {
         owner = b;
         zOrder = GetComponent<Renderer>().sortingOrder;
-
+        this.center = center;
         if (center) {
             AudioSource player = gameObject.AddComponent<AudioSource>();
             player.playOnAwake = false;
@@ -63,8 +65,15 @@ public class Explosion : MonoBehaviour, IZOrder {
     }
 
     IEnumerator exploding() {
-        yield return new WaitForSeconds(1f);
-        Destroy(gameObject); // Detalhe: Isso corta o som também.
+        yield return new WaitForSeconds(ExplosionTime);
+        if (center && GetComponent<AudioSource>() != null) {
+            GetComponent<SpriteRenderer>().enabled = false;
+            GetComponent<Collider2D>().enabled = false;
+            while (GetComponent<AudioSource>().isPlaying) {
+                yield return null;
+            }
+        } 
+        Destroy(gameObject); 
     }
 
 }
