@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 61006152895544218}
   - component: {fileID: 114349911735055128}
   - component: {fileID: 50930712074754946}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Kick
   m_TagString: Item
   m_Icon: {fileID: 0}

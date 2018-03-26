@@ -126,7 +126,7 @@ GameObject:
   - component: {fileID: 38220367}
   - component: {fileID: 38220368}
   - component: {fileID: 38220369}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Boneco
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -624,7 +624,7 @@ GameObject:
   - component: {fileID: 133805850}
   - component: {fileID: 133805849}
   - component: {fileID: 133805852}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Border
   m_TagString: Border
   m_Icon: {fileID: 0}
@@ -2672,7 +2672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPersistant: 0
   grid: {fileID: 496002856}
-  randomBlocks: 0
+  randomBlocks: 1
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -5454,7 +5454,7 @@ GameObject:
   - component: {fileID: 1086196396}
   - component: {fileID: 1086196398}
   - component: {fileID: 1086196399}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: GridBlocks
   m_TagString: GridBlocks
   m_Icon: {fileID: 0}
@@ -5942,7 +5942,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1532408714}
   - component: {fileID: 1532408715}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

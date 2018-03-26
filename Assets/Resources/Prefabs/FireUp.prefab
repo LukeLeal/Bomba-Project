@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 61660752611840142}
   - component: {fileID: 114050905461607156}
   - component: {fileID: 50273450498579964}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: FireUp
   m_TagString: Item
   m_Icon: {fileID: 0}

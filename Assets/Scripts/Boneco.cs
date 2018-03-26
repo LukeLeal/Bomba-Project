@@ -124,20 +124,23 @@ public class Boneco : MonoBehaviour, IZOrder {
         #endregion
 
         if (hasKick) {
+            // Provavelmente dá pra limpar um pouco essa parte
             if (!xMove && !yMove) {
                 if (xInput) {
                     Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
                     Vector2 nextTile = curTile() + dir;
-                    IZOrder content = gc.tileMainContent(nextTile);
-                    if (content != null && content.gameObject.CompareTag("Bomb")) {
-                        content.gameObject.GetComponent<Bomb>().wasKicked(dir);
+                    //IZOrder content = gc.tileMainContent(nextTile);
+                    GameObject content = gc.tileContentL(nextTile);
+                    if (content != null && content.CompareTag("Bomb")) {
+                        content.GetComponent<Bomb>().wasKicked(dir);
                     }
                 } else if (yInput) {
                     Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
                     Vector2 nextTile = curTile() + dir;
-                    IZOrder content = gc.tileMainContent(nextTile);
-                    if (content != null && content.gameObject.CompareTag("Bomb")) {
-                        content.gameObject.GetComponent<Bomb>().wasKicked(dir);
+                    // IZOrder content = gc.tileMainContent(nextTile);
+                    GameObject content = gc.tileContentL(nextTile);
+                    if (content != null && content.CompareTag("Bomb")) {
+                        content.GetComponent<Bomb>().wasKicked(dir);
                     }
                 }
             }
@@ -150,7 +153,8 @@ public class Boneco : MonoBehaviour, IZOrder {
         }
 
         if (Input.GetKeyDown(KeyCode.C)) {
-            Debug.Log(GridController.instance.grid.WorldToLocal(transform.position));
+            //Debug.Log(GridController.instance.grid.WorldToLocal(transform.position));
+            //Debug.Log(gc.tileContentL((Vector2)transform.position + Vector2.up).name);
         }
     }
 
@@ -161,41 +165,70 @@ public class Boneco : MonoBehaviour, IZOrder {
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <param name="obstacle"> Se true, indica movimento limitado. False whatever </param>
     /// <returns> Movimento possível ou não </returns>
+    //bool possibleMove(Vector2 dir, out bool obstacle) {
+    //    obstacle = false;
+
+    //    IZOrder zo = gc.tileMainContent((Vector2)transform.position + dir);
+    //    if (zo != null) {
+
+    //        if (zo.ZOrder == GridController.ZObjects) {
+
+    //            // Se já tiver o mais próximo possível do obstáculo, movimento impossível
+    //            if (dir == Vector2.right || dir == Vector2.left) {
+
+    //                // New - Baseado de fato na distância entre o boneco e o centro do objeto
+    //                if (Mathf.Abs(transform.position.x - gc.centerPosition((Vector2)transform.position + dir).x) <= 1) {
+    //                    return false;
+    //                }
+
+    //                //if (transform.position.x - gc.centerPosition(transform.position).x == 0) {
+    //                //    return false;
+    //                //}
+
+    //            } else if(dir == Vector2.up || dir == Vector2.down) {
+
+    //                // New
+    //                if (Mathf.Abs(transform.position.y - gc.centerPosition((Vector2)transform.position + dir).y) <= 1) {
+    //                    return false;
+    //                }
+
+    //                //if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
+    //                //    return false;
+    //                //}
+    //            } else {
+    //                Debug.Log("PutaVida.exception: Impossible direction");
+    //            }
+    //            obstacle = true;
+    //        }
+    //    }
+    //    return true;
+    //}
+
     bool possibleMove(Vector2 dir, out bool obstacle) {
         obstacle = false;
 
-        IZOrder zo = gc.tileMainContent((Vector2)transform.position + dir);
-        if (zo != null) {
+        GameObject go = gc.tileContentL((Vector2)transform.position + dir);
+        if (go != null) {
 
-            if (zo.ZOrder == GridController.ZObjects) {
+            // Se já tiver o mais próximo possível do obstáculo, movimento impossível
+            if (dir == Vector2.right || dir == Vector2.left) {
 
-                // Se já tiver o mais próximo possível do obstáculo, movimento impossível
-                if (dir == Vector2.right || dir == Vector2.left) {
-
-                    // New - Baseado de fato na distância entre o boneco e o centro do objeto
-                    if (Mathf.Abs(transform.position.x - gc.centerPosition((Vector2)transform.position + dir).x) <= 1) {
-                        return false;
-                    }
-
-                    //if (transform.position.x - gc.centerPosition(transform.position).x == 0) {
-                    //    return false;
-                    //}
-
-                } else if(dir == Vector2.up || dir == Vector2.down) {
-
-                    // New
-                    if (Mathf.Abs(transform.position.y - gc.centerPosition((Vector2)transform.position + dir).y) <= 1) {
-                        return false;
-                    }
-
-                    //if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
-                    //    return false;
-                    //}
-                } else {
-                    Debug.Log("PutaVida.exception: Impossible direction");
+                // Baseado de fato na distância entre o boneco e o centro do objeto
+                if (Mathf.Abs(transform.position.x - gc.centerPosition((Vector2)transform.position + dir).x) <= 1) {
+                    return false;
                 }
-                obstacle = true;
+
+            } else if (dir == Vector2.up || dir == Vector2.down) {
+
+                if (Mathf.Abs(transform.position.y - gc.centerPosition((Vector2)transform.position + dir).y) <= 1) {
+                    return false;
+                }
+
+            } else {
+                Debug.Log("PutaVida.exception: Impossible direction");
             }
+            obstacle = true;
+            
         }
         return true;
     }
@@ -304,7 +337,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     /// Cria bomba no tile atual se possível
     /// </summary>
     void placeBomb() {       
-        if (!dead && BombsUsed < bombsMax && GridController.instance.tileMainContent(transform.position) == null) {
+        if (!dead && BombsUsed < bombsMax && gc.tileMainContent(transform.position) == null) {
             BombsUsed++;
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
             b.setup(this);

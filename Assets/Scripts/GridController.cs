@@ -28,6 +28,15 @@ public class GridController : Singleton<GridController> {
     public const int ZFlying = 4;
     public const int ZTop = 5;
 
+    // Constantes Layers
+    public const int Background = 8;
+    public const int Surface = 9;
+    public const int Objects = 10;
+    public const int Bonecos = 11;
+    public const int Above = 12;
+    public const int Flying = 13;
+    public const int Top = 14;
+
     // Use this for initialization
     void Start() {
         //Debug.Log("Grid info \nCell Size: " + grid.cellSize
@@ -46,9 +55,10 @@ public class GridController : Singleton<GridController> {
 	
 	// Update is called once per frame
 	void Update () {
-        //if (Input.GetKeyDown(KeyCode.O)) {
-        //    Debug.Log(tileContentOnZOrders(new Vector2(2, 2), new int[] { 1, 2 }).Count);
-        //}
+        if (Input.GetKeyDown(KeyCode.O)) {
+            tileContentL(new Vector2(2, 2), new int[] { Objects, Bonecos });
+            //Debug.Log(tileContentOnLayers(new Vector2(2, 2), new int[] { Objects, Bonecos }));
+        }
     }
 
     #region Grid Setup
@@ -209,6 +219,23 @@ public class GridController : Singleton<GridController> {
         return null; // Tile vazia na cada de objects.
     }
 
+    public GameObject tileContentL(Vector2 pos) {
+        Vector2 center = centerPosition(pos); // Garante centralização
+        int layerMask = 1 << Objects;
+        //Debug.Log(layerMask);
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0, layerMask);
+
+        foreach (Collider2D collider in collidersInTile) {
+            if (centerPosition(collider.gameObject.transform.position) == center || collider.gameObject.CompareTag("GridBlocks") ||
+                collider.gameObject.CompareTag("Border")) {
+                //Debug.Log(collider.gameObject.name);
+                return collider.gameObject;
+            }
+        }
+
+        return null; // Tile vazia na cada de objects.
+    }
+
     /// <summary>
     /// Retorna todos os zobjetos nas zorders desejada (eu tenho que melhorar essa nomenclatura lol)
     /// 
@@ -234,9 +261,47 @@ public class GridController : Singleton<GridController> {
                 Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
             }
         }
-        return zobjs; // Tile vazia na cada de objects.
+        return zobjs; 
     }
-#endregion 
+
+    public List<GameObject> tileContentL(Vector2 pos, params int[] layers) {
+        Vector2 center = centerPosition(pos); // Garante centralização
+        List<GameObject> gos = new List<GameObject>();
+        int layerMask = 0;
+        foreach (int i in layers) {
+            layerMask |= 1 << i;
+        }
+
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0, layerMask);
+        foreach (Collider2D collider in collidersInTile) {
+
+            if (centerPosition(collider.gameObject.transform.position) == center || collider.gameObject.CompareTag("GridBlocks") ||
+                collider.gameObject.CompareTag("Border")) {
+                gos.Add(collider.gameObject);
+            }
+
+        }
+        return gos; // Tile vazia na cada de objects.
+    }
+
+    public List<GameObject> tileContentL(Vector2 pos, params string[] layers) {
+        Vector2 center = centerPosition(pos); // Garante centralização
+        List<GameObject> gos = new List<GameObject>();
+        int layerMask = LayerMask.GetMask(layers);
+
+        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0, layerMask);
+        foreach (Collider2D collider in collidersInTile) {
+
+            if (centerPosition(collider.gameObject.transform.position) == center || collider.gameObject.CompareTag("GridBlocks") ||
+                collider.gameObject.CompareTag("Border")) {
+                gos.Add(collider.gameObject);
+            }
+
+        }
+        return gos; // Tile vazia na cada de objects.
+    }
+
+    #endregion
 
     /// <summary>
     /// Método para testes de raycast.
