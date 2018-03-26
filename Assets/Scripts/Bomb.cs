@@ -11,7 +11,7 @@ public class Bomb : MonoBehaviour, IZOrder {
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
     Boneco owner; // Boneco dono da bomba. 
     GridController gc;
-    string sfxPath = "Sounds/SFX/"; // Caminho pros sound effects. Talvez torne isso numa constante global ou sei lá.
+    string sfxPath = "Sounds/SFX/Bomb"; // Caminho pros sound effects.
     string explosionPath = "Prefabs/Explosions/Explosion"; // Caminho pros prefabs das explosões
 
     public const int Ticking = 1;
@@ -105,7 +105,7 @@ public class Bomb : MonoBehaviour, IZOrder {
             }
             transform.position = triggerPos;
             
-            yield return new WaitForSeconds(0.075f); // No jogo original (SB5) é algo entre 0.07 e 0.08
+            yield return new WaitForSeconds(0.075f); // No jogo original (SB5) é algo entre 0.07 e 0.08 segs
             transform.position = triggerPos;
             explode();
             Destroy(trigger);
@@ -132,7 +132,8 @@ public class Bomb : MonoBehaviour, IZOrder {
         Explosion center = Instantiate(Resources.Load<Explosion>(explosionPath + "Center"), transform.position, Quaternion.identity);
         center.setup(owner, true, false);
 
-        owner.BombsUsed--;    
+        owner.BombsUsed--;
+        Debug.Log("Exploded");
         Destroy(gameObject);
     }
 
@@ -285,6 +286,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         if(collider.CompareTag("Explosion")) {
             if(collider.gameObject.GetComponent<Explosion>() != null && collider.gameObject.GetComponent<Explosion>().Pseudo) {
                 collider.enabled = false;
+                Debug.Log("to be exploded");
             }
             StartCoroutine(forceExplode(collider.gameObject));
         } 

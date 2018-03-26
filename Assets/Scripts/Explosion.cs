@@ -66,6 +66,7 @@ public class Explosion : MonoBehaviour, IZOrder {
 
     IEnumerator exploding() {
         yield return new WaitForSeconds(ExplosionTime);
+
         if (center && GetComponent<AudioSource>() != null) {
             GetComponent<SpriteRenderer>().enabled = false;
             GetComponent<Collider2D>().enabled = false;
@@ -73,6 +74,7 @@ public class Explosion : MonoBehaviour, IZOrder {
                 yield return null;
             }
         } 
+
         Destroy(gameObject); 
     }
 
