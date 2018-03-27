@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 ///  Classe responsável pelos métodos e dados do boneco
 /// </summary>
-public class Boneco : MonoBehaviour, IZOrder {
+public class Boneco : MonoBehaviour {
 
     GridController gc;
 
@@ -19,7 +19,6 @@ public class Boneco : MonoBehaviour, IZOrder {
     //bool hasPunch;
     //bool hasHold;
     bool dead = false;
-    int zOrder;
     string sfxPath = "Sounds/SFX/Boneco/";
 
     Vector2Int curDir = new Vector2Int();
@@ -29,11 +28,12 @@ public class Boneco : MonoBehaviour, IZOrder {
 
     #region gets & sets
 
-    public int ZOrder {
-        get { return zOrder; }
+    public int Layer {
+        get { return gameObject.layer; }
         set {
-            GetComponent<Renderer>().sortingOrder = value;
-            zOrder = value;
+            //GetComponent<Renderer>().sortingOrder = value;
+            GetComponentsInChildren<Renderer>()[1].sortingOrder = value;
+            gameObject.layer = value;
         }
     }
 
@@ -74,7 +74,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     // Use this for initialization
     void Start () {
         gc = GridController.instance;
-        zOrder = 2;
+        GetComponentsInChildren<Renderer>()[1].sortingOrder = Layer;
 
         if (!gc.randomBlocks) {
             FirePower = 6;
@@ -129,16 +129,16 @@ public class Boneco : MonoBehaviour, IZOrder {
                 if (xInput) {
                     Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
                     Vector2 nextTile = curTile() + dir;
-                    //IZOrder content = gc.tileMainContent(nextTile);
-                    GameObject content = gc.tileContentL(nextTile);
+
+                    GameObject content = gc.tileContent(nextTile);
                     if (content != null && content.CompareTag("Bomb")) {
                         content.GetComponent<Bomb>().wasKicked(dir);
                     }
                 } else if (yInput) {
                     Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
                     Vector2 nextTile = curTile() + dir;
-                    // IZOrder content = gc.tileMainContent(nextTile);
-                    GameObject content = gc.tileContentL(nextTile);
+
+                    GameObject content = gc.tileContent(nextTile);
                     if (content != null && content.CompareTag("Bomb")) {
                         content.GetComponent<Bomb>().wasKicked(dir);
                     }
@@ -146,16 +146,35 @@ public class Boneco : MonoBehaviour, IZOrder {
             }
         }
 
-        // http://wiki.unity3d.com/index.php?title=Xbox360Controller
         // ATENÇÃO (16/03/18): Sincronizar joystick com jogador quando tiver multiplayer. Só tá assim agora pq os ports ficam de brincation.
         if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.JoystickButton1)) {
             placeBomb();
         }
 
+        #region other inputs
+        // http://wiki.unity3d.com/index.php?title=Xbox360Controller
+        /* PC Mode WiiU Adapter:
+            0: X
+            1: A
+            2: B
+            3: Y
+            4: L
+            5: R
+            6: ???
+            7: Z
+            8: ???
+        */
+
+        // Literal Pause. Ayy lmao
+        if (Input.GetKeyDown(KeyCode.JoystickButton7)) {
+            Debug.Break();
+        }
+
         if (Input.GetKeyDown(KeyCode.C)) {
             //Debug.Log(GridController.instance.grid.WorldToLocal(transform.position));
-            //Debug.Log(gc.tileContentL((Vector2)transform.position + Vector2.up).name);
+            //Debug.Log(gc.tileContent((Vector2)transform.position + Vector2.up).name);
         }
+        #endregion
     }
 
 #region Movement functions
@@ -165,49 +184,10 @@ public class Boneco : MonoBehaviour, IZOrder {
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <param name="obstacle"> Se true, indica movimento limitado. False whatever </param>
     /// <returns> Movimento possível ou não </returns>
-    //bool possibleMove(Vector2 dir, out bool obstacle) {
-    //    obstacle = false;
-
-    //    IZOrder zo = gc.tileMainContent((Vector2)transform.position + dir);
-    //    if (zo != null) {
-
-    //        if (zo.ZOrder == GridController.ZObjects) {
-
-    //            // Se já tiver o mais próximo possível do obstáculo, movimento impossível
-    //            if (dir == Vector2.right || dir == Vector2.left) {
-
-    //                // New - Baseado de fato na distância entre o boneco e o centro do objeto
-    //                if (Mathf.Abs(transform.position.x - gc.centerPosition((Vector2)transform.position + dir).x) <= 1) {
-    //                    return false;
-    //                }
-
-    //                //if (transform.position.x - gc.centerPosition(transform.position).x == 0) {
-    //                //    return false;
-    //                //}
-
-    //            } else if(dir == Vector2.up || dir == Vector2.down) {
-
-    //                // New
-    //                if (Mathf.Abs(transform.position.y - gc.centerPosition((Vector2)transform.position + dir).y) <= 1) {
-    //                    return false;
-    //                }
-
-    //                //if (transform.position.y - gc.centerPosition(transform.position).y == 0) {
-    //                //    return false;
-    //                //}
-    //            } else {
-    //                Debug.Log("PutaVida.exception: Impossible direction");
-    //            }
-    //            obstacle = true;
-    //        }
-    //    }
-    //    return true;
-    //}
-
     bool possibleMove(Vector2 dir, out bool obstacle) {
         obstacle = false;
 
-        GameObject go = gc.tileContentL((Vector2)transform.position + dir);
+        GameObject go = gc.tileContent((Vector2)transform.position + dir);
         if (go != null) {
 
             // Se já tiver o mais próximo possível do obstáculo, movimento impossível
@@ -337,7 +317,7 @@ public class Boneco : MonoBehaviour, IZOrder {
     /// Cria bomba no tile atual se possível
     /// </summary>
     void placeBomb() {       
-        if (!dead && BombsUsed < bombsMax && gc.tileMainContent(transform.position) == null) {
+        if (!dead && BombsUsed < bombsMax && gc.tileContent(transform.position) == null) {
             BombsUsed++;
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
             b.setup(this);

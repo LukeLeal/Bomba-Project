@@ -19,15 +19,6 @@ public class GridController : Singleton<GridController> {
     * 0 —————> X+
     */
 
-    // Constantes ZOrder
-    public const int ZBackground = -1;
-    public const int ZSurface = 0;
-    public const int ZObjects = 1;
-    public const int ZBonecos = 2;
-    public const int ZAbove = 3;
-    public const int ZFlying = 4;
-    public const int ZTop = 5;
-
     // Constantes Layers
     public const int Background = 8;
     public const int Surface = 9;
@@ -50,13 +41,12 @@ public class GridController : Singleton<GridController> {
 
         GameObject boneco = GameObject.FindWithTag("Player");
         boneco.transform.position = centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
-        //newtileMainContent(new Vector2(2, 1));
     }
 	
 	// Update is called once per frame
 	void Update () {
         if (Input.GetKeyDown(KeyCode.O)) {
-            tileContentL(new Vector2(2, 2), new int[] { Objects, Bonecos });
+            tileContent(new Vector2(2, 2), new int[] { Objects, Bonecos });
             //Debug.Log(tileContentOnLayers(new Vector2(2, 2), new int[] { Objects, Bonecos }));
         }
     }
@@ -68,30 +58,26 @@ public class GridController : Singleton<GridController> {
     void generateBlocks() {
         // Verifica se o mapa está corretamente posicionado
         Vector2 curPos = centerPosition(new Vector2(0, 0));
-        if(curPos != new Vector2(0, 0) || tileMainContent(new Vector2(-1, 0)).gameObject.tag != "Border" ||
-            tileMainContent(new Vector2(0, -1)).gameObject.tag != "Border") {
+        if (curPos != new Vector2(0, 0) || !tileContent(new Vector2(-1, 0)).CompareTag("Border") ||
+            !tileContent(new Vector2(0, -1)).CompareTag("Border")) {
             Debug.Log("Deu ruim. Tabuleiro mal formado"); // PutaVida.exception
         }
 
         // Pegando tamanho da parte jogável do mapa
         int x = 1, y = 1;
         do {
-            IZOrder zo = tileMainContent(curPos + Vector2.up);
-            if(zo != null) {
-                if(zo.gameObject.CompareTag("Border")) {
-                    break;
-                }
+            GameObject content = tileContent(curPos + Vector2.up);
+            if (content != null && content.CompareTag("Border")) {
+                break;
             }
             curPos += Vector2.up;
             y++;
         } while (y < 100); // Limite arbitrário pra impedir loop infinito :P
 
         do {
-            IZOrder zo = tileMainContent(curPos + Vector2.right);
-            if (zo != null) {
-                if (zo.gameObject.CompareTag("Border")) {
-                    break;
-                }
+            GameObject content = tileContent(curPos + Vector2.right);
+            if (content != null && content.CompareTag("Border")) {
+                break;
             }
             curPos += Vector2.right;
             x++;
@@ -99,12 +85,12 @@ public class GridController : Singleton<GridController> {
 
         // População da gridInfo
         gridInfo = new TileInfo[x, y];
-        for(int i = 0; i < x; i++) {
-            for(int j = 0; j < y; j++) {
+        for (int i = 0; i < x; i++) {
+            for (int j = 0; j < y; j++) {
                 gridInfo[i, j] = new TileInfo(centerPosition(new Vector2(i, j)));
-                IZOrder zo = tileMainContent(new Vector2(i, j));
-                if (zo != null) {
-                    gridInfo[i, j].Block = zo.gameObject.tag;
+                GameObject content = tileContent(new Vector2(i, j));
+                if (content != null) {
+                    gridInfo[i, j].Block = content.tag;
                 }
             }
         }
@@ -120,7 +106,7 @@ public class GridController : Singleton<GridController> {
             if (!t.Spawn && t.Block == "") {
                 if (UnityEngine.Random.Range(0, 100) < 70) {
                     t.Block = "RegularBlock";
-                    rbs.Add( Instantiate(Resources.Load<RegularBlock>("Prefabs/RegularBlock"), t.Center, Quaternion.identity) );
+                    rbs.Add(Instantiate(Resources.Load<RegularBlock>("Prefabs/RegularBlock"), t.Center, Quaternion.identity));
                 }
             }
         }
@@ -193,36 +179,15 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
-    /// Retorna o ZO (gameObject com ZOrder) presente na camada de objects da tile.
+    /// Retorna o gameObject na "Objects" layer da tile (deve haver no máximo gameObject).
     /// 
     /// Há o caso especial pra GridBlocks e Border no if pois, por serem feitos pelo tilemap brush, a posição real deles não é na tile.
     ///     Porém, por ocuparem apenas uma tile fixa e tile.size > overlapBox.size, não é necessário fazer aquela garantia de posição.
     /// </summary>
-    public IZOrder tileMainContent(Vector2 pos) {
-        Vector2 center = centerPosition(pos); // Garante centralização
-
-        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
-        foreach (Collider2D collider in collidersInTile) {
-            IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
-            if (zo != null) {
-                if (zo.ZOrder == GridController.ZObjects && 
-                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
-                    zo.gameObject.CompareTag("Border"))) {
-
-                    return zo;
-                }
-            } else {
-                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
-            }
-        }
-        
-        return null; // Tile vazia na cada de objects.
-    }
-
-    public GameObject tileContentL(Vector2 pos) {
+    /// <param name="pos"> Posição da tile </param>
+    public GameObject tileContent(Vector2 pos) {
         Vector2 center = centerPosition(pos); // Garante centralização
         int layerMask = 1 << Objects;
-        //Debug.Log(layerMask);
         Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0, layerMask);
 
         foreach (Collider2D collider in collidersInTile) {
@@ -237,36 +202,15 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
-    /// Retorna todos os zobjetos nas zorders desejada (eu tenho que melhorar essa nomenclatura lol)
-    /// 
-    /// Talvez eu faça um overload com o tileMainContent.
+    /// Retorna todos os objetos encontrados nas layers desejadas
     /// </summary>
-    /// <param name="pos">Posição da tile</param>
-    /// <param name="zorders">Camadas ZOrder desejadas</param>
-    public List<IZOrder> tileContentOnZOrders(Vector2 pos, int[] zorders) {
+    /// <param name="pos"> Posição da tile</param>
+    /// <param name="layers"> Nº das layers a serem vasculhadas </param>
+    public List<GameObject> tileContent(Vector2 pos, params int[] layers) {
         Vector2 center = centerPosition(pos); // Garante centralização
-        List<IZOrder> zobjs = new List<IZOrder>();
+        List<GameObject> contents = new List<GameObject>();
 
-        Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0);
-        foreach (Collider2D collider in collidersInTile) {
-            IZOrder zo = collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
-            if (zo != null) {
-                if (UnityEditor.ArrayUtility.Contains(zorders, zo.ZOrder) &&
-                    (centerPosition(zo.gameObject.transform.position) == center || zo.gameObject.CompareTag("GridBlocks") ||
-                    zo.gameObject.CompareTag("Border"))) {
-
-                    zobjs.Add(zo);
-                }
-            } else {
-                Debug.Log("PutaVida.exception: Objeto sem ZOrder no tabuleiro - " + centerPosition(collider.transform.position));
-            }
-        }
-        return zobjs; 
-    }
-
-    public List<GameObject> tileContentL(Vector2 pos, params int[] layers) {
-        Vector2 center = centerPosition(pos); // Garante centralização
-        List<GameObject> gos = new List<GameObject>();
+        // LayerMask's BitMagic
         int layerMask = 0;
         foreach (int i in layers) {
             layerMask |= 1 << i;
@@ -277,16 +221,21 @@ public class GridController : Singleton<GridController> {
 
             if (centerPosition(collider.gameObject.transform.position) == center || collider.gameObject.CompareTag("GridBlocks") ||
                 collider.gameObject.CompareTag("Border")) {
-                gos.Add(collider.gameObject);
+                contents.Add(collider.gameObject);
             }
 
         }
-        return gos; // Tile vazia na cada de objects.
+        return contents; 
     }
 
-    public List<GameObject> tileContentL(Vector2 pos, params string[] layers) {
+    /// <summary>
+    /// Retorna todos os objetos encontrados nas layers desejadas
+    /// </summary>
+    /// <param name="pos"> Posição da tile</param>
+    /// <param name="layers"> Nome das layers a serem vasculhadas </param>
+    public List<GameObject> tileContent(Vector2 pos, params string[] layers) {
         Vector2 center = centerPosition(pos); // Garante centralização
-        List<GameObject> gos = new List<GameObject>();
+        List<GameObject> contents = new List<GameObject>();
         int layerMask = LayerMask.GetMask(layers);
 
         Collider2D[] collidersInTile = Physics2D.OverlapBoxAll(center, new Vector2(0.9f, 0.9f), 0, layerMask);
@@ -294,11 +243,11 @@ public class GridController : Singleton<GridController> {
 
             if (centerPosition(collider.gameObject.transform.position) == center || collider.gameObject.CompareTag("GridBlocks") ||
                 collider.gameObject.CompareTag("Border")) {
-                gos.Add(collider.gameObject);
+                contents.Add(collider.gameObject);
             }
 
         }
-        return gos; // Tile vazia na cada de objects.
+        return contents; 
     }
 
     #endregion
@@ -311,11 +260,11 @@ public class GridController : Singleton<GridController> {
     void rayTest(Vector2 origin, Vector2 dir) {
         RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.right, 3f);
         foreach (RaycastHit2D hit in hits) {
-            IZOrder zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
+            GameObject go = hit.collider.gameObject;
 
             Debug.Log("Dir: " + dir + " - Dist: " + Vector2.Distance(origin, centerPosition(hit.point, dir)) +
                 " - HitPoint: " + hit.point + " - Hit CellCenter: " + centerPosition(hit.point, dir));
-            Debug.Log(zo.gameObject.tag);
+            Debug.Log(gameObject.tag);
         }
     }
 }

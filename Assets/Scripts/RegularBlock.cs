@@ -2,18 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RegularBlock : MonoBehaviour, IZOrder {
+public class RegularBlock : MonoBehaviour {
 
     bool isExploding = false;
-    int zOrder;
     string itemName; // Nome do item (se houver) que aparecerá quando o bloco for explodido.
 
-    public int ZOrder {
-        get { return zOrder; }
-        set {
-            GetComponent<Renderer>().sortingOrder = value;
-            zOrder = value;
-        }
+    public int Layer {
+        get { return gameObject.layer; }
     }
 
     public string ItemName {
@@ -23,7 +18,7 @@ public class RegularBlock : MonoBehaviour, IZOrder {
 
     // Use this for initialization
     void Awake () {
-		zOrder = GetComponent<Renderer>().sortingOrder;
+		GetComponent<Renderer>().sortingOrder = Layer;
         ItemName = "";
     }
 	

@@ -2,22 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : MonoBehaviour, IZOrder {
+public class Item : MonoBehaviour {
 
-    int zOrder;
     bool isExploding = false;
 
-    public int ZOrder {
-        get { return zOrder; }
-        set {
-            GetComponent<Renderer>().sortingOrder = value;
-            zOrder = value;
-        }
+    public int Layer {
+        get { return gameObject.layer; }
     }
 
     // Use this for initialization
     void Start() {
-        zOrder = GetComponent<Renderer>().sortingOrder;
+        GetComponent<Renderer>().sortingOrder = Layer;
     }
 
     // Update is called once per frame

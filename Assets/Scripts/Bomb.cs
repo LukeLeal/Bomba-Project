@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bomb : MonoBehaviour, IZOrder {
+public class Bomb : MonoBehaviour {
 
     // Dados da bomba
     int power; // Tiles além do centro ocupado pela explosão (min 1)
-    int zOrder;
+
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
     Boneco owner; // Boneco dono da bomba. 
     GridController gc;
@@ -27,11 +27,11 @@ public class Bomb : MonoBehaviour, IZOrder {
         set { power = value; }
     }
 
-    public int ZOrder {
-        get { return zOrder; }
+    public int Layer {
+        get { return gameObject.layer; }
         set {
             GetComponent<Renderer>().sortingOrder = value;
-            zOrder = value;
+            gameObject.layer = value;
         }
     }
 
@@ -62,7 +62,7 @@ public class Bomb : MonoBehaviour, IZOrder {
         owner = b;
         power = b.FirePower;
         transform.position = gc.centerPosition(b.transform.position);
-        ZOrder = GridController.ZObjects;
+        GetComponent<Renderer>().sortingOrder = Layer;
         state = Ticking;
         GetComponent<AudioSource>().clip = (AudioClip) Resources.Load(sfxPath + "PlaceBomb");
         GetComponent<AudioSource>().Play();
@@ -123,10 +123,10 @@ public class Bomb : MonoBehaviour, IZOrder {
         transform.position = gc.centerPosition(transform.position);
 
         // Cria as explosões pra cada lado
-        createExplosion(Vector2.up);
-        createExplosion(Vector2.right);
-        createExplosion(Vector2.down);
-        createExplosion(Vector2.left);
+        createExplosions(Vector2.up);
+        createExplosions(Vector2.right);
+        createExplosions(Vector2.down);
+        createExplosions(Vector2.left);
 
         // Cria o centro da explosão
         Explosion center = Instantiate(Resources.Load<Explosion>(explosionPath + "Center"), transform.position, Quaternion.identity);
@@ -141,46 +141,8 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// ATENÇÃO (07/03/18): Não estou satisfeito com a pseudo-explosão. Mudanças Soon tm. 
     ///     Talvez interagindo diretamente com o objeto a ser explodido ao invés de depender de colliders seja melhor.
     /// </summary>
-    /// <param name="dir"></param>
-    //void createExplosion(Vector2 dir) {
-    //    IZOrder zo;
-    //    string direction;
-    //    if (dir == Vector2.up) {
-    //        direction = "Up";
-    //    } else if (dir == Vector2.right) {
-    //        direction = "Right";
-    //    } else if (dir == Vector2.down) {
-    //        direction = "Down";
-    //    } else {
-    //        direction = "Left";
-    //    }
-
-    //    int range = calculateRange(dir, out zo);
-
-    //    Vector2 curPos = (Vector2) transform.position + dir;
-    //    while (range > 0) {
-    //        if (range == 1) {
-
-    //            if(zo != null) {
-    //                // Cria pseudo explosão no tile já ocupado por outro objeto
-    //                Explosion pseudoExplosion = Instantiate(Resources.Load<Explosion>(explosionPath + direction), curPos, Quaternion.identity);
-    //                pseudoExplosion.setup(owner, false, true);
-    //                break;
-    //            } else {
-    //                Explosion end = Instantiate(Resources.Load<Explosion>(explosionPath + direction + "End"), curPos, Quaternion.identity);
-    //                end.setup(owner, false, false);
-    //                break;
-    //            }
-    //        } 
-    //        Explosion e = Instantiate(Resources.Load<Explosion>(explosionPath + direction), curPos, Quaternion.identity);
-    //        e.setup(owner, false, false);
-    //        curPos += dir;
-
-    //        range--;
-    //    }
-    //}
-
-    void createExplosion(Vector2 dir) {
+    /// <param name="dir"> Direção do rastro da explosão a ser criado (e.g. Vector2.up) </param>
+    void createExplosions(Vector2 dir) {
         GameObject go;
         string direction;
         if (dir == Vector2.up) {
@@ -221,42 +183,9 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// <summary>
     /// Define o alcance da explosão na determinada direção
     /// </summary>
-    /// <param name="dir"> Direção (e.g. Vector2.up) </param>
+    /// <param name="dir"> Direção a ser calculada (e.g. Vector2.up) </param>
+    /// <param name="go"> Objeto (exceto Explosion) que determina o fim do alcance </param>
     /// <returns> Alcance em tiles </returns>
-    //int calculateRange(Vector2 dir, out IZOrder zo) {
-    //    List<RaycastHit2D> hits = new List<RaycastHit2D>(Physics2D.BoxCastAll(transform.position, new Vector2(0.9f, 0.9f), 0f, dir, power));
-
-    //    Vector2 lastExplosionPos = Vector2.positiveInfinity;
-
-    //    foreach (RaycastHit2D hit in hits) {
-
-    //        // Apenas atravessa explosões se não houver duas seguidas.
-    //        if (hit.collider.CompareTag("Explosion")) {
-    //            Vector2 curExplosionPos = gc.centerPosition(hit.collider.gameObject.transform.position);
-    //            if (Vector2.Distance(curExplosionPos, lastExplosionPos) == 1) {
-    //                // Retorna distância entre a bomba e a tile antes das explosões
-    //                zo = null;
-    //                return (int)Mathf.Clamp(Vector2.Distance(gc.centerPosition(transform.position), curExplosionPos) - 2, 0, power);
-    //            }
-    //            lastExplosionPos = curExplosionPos;
-    //            continue;
-    //        }
-
-    //        // Elementos que estão na camada de objetos ou items finalizam o alcance da explosão.
-    //        zo = hit.collider.gameObject.GetComponent<MonoBehaviour>() as IZOrder;
-    //        if (zo != null && zo.ZOrder != GridController.ZObjects) {
-    //            if (zo.gameObject.tag != "Item") {
-    //                continue;
-    //            }
-    //        }
-
-    //        // Retorna distância dos dois centros de tiles (própria bomba e colisão). 
-    //        return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point, dir));
-    //    }
-    //    zo = null;
-    //    return Power; // Se não tem nada no caminho, range máximo
-    //}
-
     int calculateRange(Vector2 dir, out GameObject go) {
         
         RaycastHit2D[] hits = 
@@ -265,8 +194,6 @@ public class Bomb : MonoBehaviour, IZOrder {
         Vector2 lastExplosionPos = Vector2.positiveInfinity;
 
         foreach (RaycastHit2D hit in hits) {
-            go = hit.collider.gameObject;
-
             // Apenas atravessa explosões se não houver duas seguidas.
             if (hit.collider.CompareTag("Explosion")) {
                 Vector2 curExplosionPos = gc.centerPosition(hit.collider.gameObject.transform.position);
@@ -279,11 +206,7 @@ public class Bomb : MonoBehaviour, IZOrder {
                 continue;
             }
 
-            //// Elementos que estão na camada de objetos ou items finalizam o alcance da explosão.
-            //if (go.layer != GridController.Objects && !go.CompareTag("Item")) {
-            //    continue;
-            //}
-
+            go = hit.collider.gameObject;
             // Retorna distância dos dois centros de tiles (própria bomba e colisão). 
             return (int)Vector2.Distance(transform.position, gc.centerPosition(hit.point, dir));
         }
@@ -326,39 +249,11 @@ public class Bomb : MonoBehaviour, IZOrder {
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Movimento possível ou não </returns>
-    //bool possibleSlide(Vector2 dir) {
-
-    //    List<IZOrder> zos = gc.tileContentOnZOrders((Vector2)transform.position + dir, new int[] { 1, 2 });
-    //    if (zos.Count > 0) {
-
-    //        // Só continua o movimento se estiver antes do centro da tile atual
-    //        if (dir == Vector2.right || dir == Vector2.left) {
-    //            if (dir.x * (transform.position.x - gc.centerPosition(transform.position).x) < 0) {
-    //                return true;
-    //            } else {
-    //                return false;
-    //            }
-
-    //        } else if (dir == Vector2.up || dir == Vector2.down) {
-    //            if (dir.y * (transform.position.y - gc.centerPosition(transform.position).y) < 0) {
-    //                return true;
-    //            } else {
-    //                return false;
-    //            }
-
-    //        } else {
-    //            Debug.Log("PutaVida.exception: Impossible direction");
-    //        }
-    //    }
-    //    return true; // Próxima tile sem obstáculos
-    //}
-
     bool possibleSlide(Vector2 dir) {
 
-        List<GameObject> contents = gc.tileContentL((Vector2)transform.position + dir, GridController.Objects, GridController.Bonecos);
+        List<GameObject> contents = gc.tileContent((Vector2)transform.position + dir, GridController.Objects, GridController.Bonecos);
 
         if (contents.Count > 0) {
-            Debug.Log(contents[0].name);
 
             // Só continua o movimento se estiver antes do centro da tile atual
             if (dir == Vector2.right || dir == Vector2.left) {

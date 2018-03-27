@@ -452,7 +452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eefba683fab71d943b601ea05139e5fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  forceMusic: -1
+  forceMusic: 4
 --- !u!213 &132332453
 Sprite:
   m_ObjectHideFlags: 0
@@ -2672,7 +2672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPersistant: 0
   grid: {fileID: 496002856}
-  randomBlocks: 1
+  randomBlocks: 0
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -5923,7 +5923,7 @@ Prefab:
     - target: {fileID: 114296839283202708, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
       propertyPath: forceMusic
-      value: -1
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
