@@ -153,10 +153,9 @@ public class GridController : Singleton<GridController> {
 
     /// <summary>
     /// Acha a posição central da célula. Usado apenas no tratamento de certos raycasts e colisões.
-    /// 
+    /// </summary>
     /// Em casos bem específicos, float ficava de brincation. Por isso os arredondamentos
     /// - "Assets/Design & etc/Float perdendo precisão wtf.png"
-    /// </summary>
     /// <param name="pos"> Posição </param>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <returns> Posição centralizada na devida célula </returns>
@@ -193,7 +192,6 @@ public class GridController : Singleton<GridController> {
         foreach (Collider2D collider in collidersInTile) {
             if (centerPosition(collider.gameObject.transform.position) == center || collider.gameObject.CompareTag("GridBlocks") ||
                 collider.gameObject.CompareTag("Border")) {
-                //Debug.Log(collider.gameObject.name);
                 return collider.gameObject;
             }
         }
@@ -255,8 +253,8 @@ public class GridController : Singleton<GridController> {
     /// <summary>
     /// Método para testes de raycast.
     /// </summary>
-    /// <param name="origin"></param>
-    /// <param name="dir"></param>
+    /// <param name="origin">Ponto de origem do raycast </param>
+    /// <param name="dir"> Direção do raycast </param>
     void rayTest(Vector2 origin, Vector2 dir) {
         RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.right, 3f);
         foreach (RaycastHit2D hit in hits) {

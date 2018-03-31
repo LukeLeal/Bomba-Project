@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RegularBlock : MonoBehaviour {
+/// <summary>
+/// Soft-Blocks são os blocos destrutíveis por explosões. Podem revelar items quando destruidos.
+/// </summary>
+public class RegularBlock : MonoBehaviour, IDestructible {
 
     bool isExploding = false;
     string itemName; // Nome do item (se houver) que aparecerá quando o bloco for explodido.
@@ -21,11 +24,18 @@ public class RegularBlock : MonoBehaviour {
 		GetComponent<Renderer>().sortingOrder = Layer;
         ItemName = "";
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    /// <summary>
+    /// Bloco tem sua destruição forçada por um agente externo.
+    /// </summary>
+    /// <param name="position"> Posição onde a destruição deve ocorrer. </param>
+    public void forceDestruction(Vector2 position) {
+        if (!isExploding) {
+            isExploding = true;
+            GetComponent<SpriteRenderer>().color = Color.red;
+            StartCoroutine(exploding());
+        }
+    }
 
     IEnumerator exploding() {
         yield return new WaitForSeconds(Explosion.ExplosionTime);
@@ -37,14 +47,14 @@ public class RegularBlock : MonoBehaviour {
         Destroy(gameObject);
     }
 
-    void OnTriggerEnter2D(Collider2D collider) {
-        if (collider.CompareTag("Explosion")) {
-            Destroy(collider.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
-            if (!isExploding) {
-                isExploding = true;
-                GetComponent<SpriteRenderer>().color = Color.red;
-                StartCoroutine(exploding());
-            }
-        }
-    }
+    //void OnTriggerEnter2D(Collider2D collider) {
+    //    if (collider.CompareTag("Explosion")) {
+    //        Destroy(collider.gameObject); // Tira a pseudo-explosão. Única função dela era fazer esse objeto explodir.
+    //        if (!isExploding) {
+    //            isExploding = true;
+    //            GetComponent<SpriteRenderer>().color = Color.red;
+    //            StartCoroutine(exploding());
+    //        }
+    //    }
+    //}
 }

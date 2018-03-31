@@ -7,37 +7,18 @@ public class Explosion : MonoBehaviour {
     public const float ExplosionTime = 0.5f;
     Boneco owner;
     bool center;
-    bool pseudo; // pseudo-explosões são criadas em tiles já ocupadas por outro objeto. Única função é ativar um trigger (se houver) nele.
-        // Ao triggerar o outro objeto, sua colisão deve deixar de existir.     
-    // ATENÇÃO (07/03/18): Não estou satisfeito com a pseudo-explosão. Mudanças Soon tm. 
-    //  Talvez interagindo diretamente com o objeto a ser explodido ao invés de depender de colliders seja melhor.
 
     public int Layer {
         get { return gameObject.layer; }
     }
 
-    public bool Pseudo {
-        get { return pseudo; }
-    }
-
-    // Use this for initialization
-    void Start () {
-
-    }
-	
-	// Update is called once per frame
-	void Update () {
-
-	}
-
     /// <summary>
     /// Faz ajustes e definições finais antes de ligar a explosão
     /// </summary>
-    /// <param name="b"> Boneco que soltou a bomba que causou essa explosão. 
-    ///                     - atm faz nada, mas depois poderá ser usado pra dar a kill pra ele. </param>
+    /// <param name="b"> Boneco que soltou a bomba que causou essa explosão. </param>
+    ///                     - atm faz nada, mas depois poderá ser usado pra dar a kill pra ele. 
     /// <param name="center"> Centro das explosões causada pela bomba. Responsável pelo som. </param>
-    /// <param name="pseudo"> Se será apenas uma pseudo-explosão. Ver definição lá em cima. </param>
-    public void setup(Boneco b, bool center, bool pseudo) {
+    public void setup(Boneco b, bool center) {
         owner = b;
         GetComponent<Renderer>().sortingOrder = Layer;
         this.center = center;
@@ -51,14 +32,13 @@ public class Explosion : MonoBehaviour {
             }
         }
 
-        if (pseudo) {
-            this.pseudo = pseudo;
-            GetComponent<SpriteRenderer>().enabled = false;
-        }
-        
         StartCoroutine(exploding());
     }
 
+    /// <summary>
+    /// Controla a duração da explosão
+    /// </summary>
+    /// Dá pra ter um nome melhor. Talvez trocar esse ou os outros métodos na Bomb, Soft-Block e tals. 
     IEnumerator exploding() {
         yield return new WaitForSeconds(ExplosionTime);
 

@@ -31,7 +31,6 @@ public class Boneco : MonoBehaviour {
     public int Layer {
         get { return gameObject.layer; }
         set {
-            //GetComponent<Renderer>().sortingOrder = value;
             GetComponentsInChildren<Renderer>()[1].sortingOrder = value;
             gameObject.layer = value;
         }
@@ -215,9 +214,9 @@ public class Boneco : MonoBehaviour {
 
     /// <summary>
     /// Baseado na direção antiga e nos novos inputs, define qual será a nova direção do boneco
-    /// Desenho dos estados no "automato" na pasta "design & etc"
     /// </summary>
     /// <param name="x, y"> Se há inputs de movimento horizontal / vertical </param>
+    /// Desenho dos estados no "automato" na pasta "design & etc"
     void trueDirection(bool x, bool y) {
 
         if (x && y) {
@@ -242,15 +241,15 @@ public class Boneco : MonoBehaviour {
     /// <summary>
     /// Define qual será o movimento realizado pelo boneco de acordo com o input e a posição atual.
     /// A ideia do movimento no jogo é sempre se manter no centro de um dos eixos da tile (ou ir a ele nas "curvas").
-    /// - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não acho ideal. 
-    ///     O boneco fica com um "Efeito Luigi". Vai um pouco mais à frente do que deve nos movimentos.
-    /// - Update (16/03/2018): O "Efeito Luigi" aparentemente só ocorre quando usa teclado como input.    
-    ///     Até onde testei, o movimento usando controle de GameCube tá 10/10. A diferença deve ser por causa do analógico,
-    ///     mas não deixa de ser estranho... Devo ter feito alguma bosta nas fórmulas ai, ou o teclado é RUI mesmo hue.
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <param name="obstacle"> Se há algum elemento à frente que limita o movimento </param>
     void calculateMovement(string dir, bool obstacle) {
+        // - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não acho ideal. 
+        //     O boneco fica com um "Efeito Luigi". Vai um pouco mais à frente do que deve nos movimentos.
+        // - Update (16/03/2018): O "Efeito Luigi" aparentemente só ocorre quando usa teclado como input.    
+        //     Até onde testei, o movimento usando controle de GameCube tá 10/10. A diferença deve ser por causa do analógico,
+        //     mas não deixa de ser estranho... Devo ter feito alguma bosta nas fórmulas ai, ou o teclado é RUI mesmo hue.
 
         float moveConst = Time.deltaTime * speed; // BETA. 
 
@@ -314,7 +313,7 @@ public class Boneco : MonoBehaviour {
 #endregion
 
     /// <summary>
-    /// Cria bomba no tile atual se possível
+    /// Cria bomba na tile atual se possível
     /// </summary>
     void placeBomb() {       
         if (!dead && BombsUsed < bombsMax && gc.tileContent(transform.position) == null) {
@@ -355,7 +354,9 @@ public class Boneco : MonoBehaviour {
         Destroy(item.gameObject);
     }
 
-    // BETA
+    /// <summary>
+    /// BETA. Controla o tempo em que o boneco fica no estado dead (sem bombas e vermelho)
+    /// </summary>
     IEnumerator die() {
         yield return new WaitForSeconds(1.5f);
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].color = Color.white;

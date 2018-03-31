@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bomb : MonoBehaviour {
+public class Bomb : MonoBehaviour, IDestructible {
 
     // Dados da bomba
     int power; // Tiles além do centro ocupado pela explosão (min 1)
@@ -84,34 +84,33 @@ public class Bomb : MonoBehaviour {
     }
 
     /// <summary>
-    /// Bomba para tudo e tem sua explosão forçada por um agente externo
-    /// 
-    /// triggerPos existe pq num caso muito específico o trigger já tava destruido ao regular a posição, dando ruim.
-    /// 
-    /// ATENÇÃO (1º/03/18): Parar a coroutine do slideCR não para imediatamente o translate já feito nela.
-    ///     Por causa disso, tive que meter dois centerPos (antes e depois do wait) pra garantir que a bomba 
-    ///     explodirá no local certo e sem movimentos extremamente bruscos. Deve haver uma solução melhor, tho...
+    /// Bomba para tudo e tem sua explosão forçada (por outra bomba prestes a explodir, ou colisão com explosão).
     /// </summary>
-    /// <param name="trigger"> Objeto cujo a colisão causou a explosão dessa bomba. </param>
-    public IEnumerator forceExplode(GameObject trigger) {
-        if (state != Exploding) { 
-            Vector2 triggerPos = gc.centerPosition(trigger.transform.position);
-            state = Exploding;
-            if (tickCR != null) {
-                StopCoroutine(tickCR);
-            }
-            if (slideCR != null) {
-                StopCoroutine(slideCR);
-            }
-            transform.position = triggerPos;
-            
-            yield return new WaitForSeconds(0.075f); // No jogo original (SB5) é algo entre 0.07 e 0.08 segs
-            transform.position = triggerPos;
-            explode();
-            Destroy(trigger);
+    /// <param name="position"> Posição onde a destruição deve ocorrer. </param>
+    public void forceDestruction(Vector2 position) {
+        state = Exploding;
+        if (tickCR != null) {
+            StopCoroutine(tickCR);
         }
+        if (slideCR != null) {
+            StopCoroutine(slideCR);
+        }
+        transform.position = position;
+        StartCoroutine(forcedExplosion(position));
     }
-#endregion
+
+    /// <summary>
+    /// Controla o tempo entre o comando de destruição forçada e o processo de explosão.
+    /// </summary>
+    /// <param name="position"> Posição onde a bomba deve estar no processo de explosão. </param>
+    /// Nome beta :P
+    public IEnumerator forcedExplosion(Vector2 position) {
+        yield return new WaitForSeconds(0.075f); // No jogo original (SB5) é algo entre 0.07 e 0.08 segs.
+        transform.position = position;
+        explode();
+    }
+
+    #endregion
 
     #region Sequência de criação da explosão
     /// <summary>
@@ -127,10 +126,9 @@ public class Bomb : MonoBehaviour {
         createExplosions(Vector2.right);
         createExplosions(Vector2.down);
         createExplosions(Vector2.left);
-
         // Cria o centro da explosão
         Explosion center = Instantiate(Resources.Load<Explosion>(explosionPath + "Center"), transform.position, Quaternion.identity);
-        center.setup(owner, true, false);
+        center.setup(owner, true);
 
         owner.BombsUsed--;
         Destroy(gameObject);
@@ -138,8 +136,6 @@ public class Bomb : MonoBehaviour {
 
     /// <summary>
     /// Se possível, cria os objetos das explosões em uma direção
-    /// ATENÇÃO (07/03/18): Não estou satisfeito com a pseudo-explosão. Mudanças Soon tm. 
-    ///     Talvez interagindo diretamente com o objeto a ser explodido ao invés de depender de colliders seja melhor.
     /// </summary>
     /// <param name="dir"> Direção do rastro da explosão a ser criado (e.g. Vector2.up) </param>
     void createExplosions(Vector2 dir) {
@@ -159,21 +155,24 @@ public class Bomb : MonoBehaviour {
 
         Vector2 curPos = (Vector2)transform.position + dir;
         while (range > 0) {
-            if (range == 1) {
 
+            if (range == 1) {
                 if (go != null) {
-                    // Cria pseudo explosão no tile já ocupado por outro objeto
-                    Explosion pseudoExplosion = Instantiate(Resources.Load<Explosion>(explosionPath + direction), curPos, Quaternion.identity);
-                    pseudoExplosion.setup(owner, false, true);
-                    break;
+                    // Se há objeto no fim do alcance, verifica se é destrutível
+                    if(go.GetComponent<MonoBehaviour>() as IDestructible != null) {
+                        (go.GetComponent<MonoBehaviour>() as IDestructible).forceDestruction(curPos);
+                    }
+
                 } else {
                     Explosion end = Instantiate(Resources.Load<Explosion>(explosionPath + direction + "End"), curPos, Quaternion.identity);
-                    end.setup(owner, false, false);
-                    break;
+                    end.setup(owner, false);
                 }
-            }
+
+                break;
+            } // range == 1
+
             Explosion e = Instantiate(Resources.Load<Explosion>(explosionPath + direction), curPos, Quaternion.identity);
-            e.setup(owner, false, false);
+            e.setup(owner, false);
             curPos += dir;
 
             range--;
@@ -280,11 +279,10 @@ public class Bomb : MonoBehaviour {
     #endregion
 
     void OnTriggerEnter2D(Collider2D collider) {
+
+        // Através de algum movimento, esta bomba entrou no alcance de uma explosão
         if(collider.CompareTag("Explosion")) {
-            if(collider.gameObject.GetComponent<Explosion>() != null && collider.gameObject.GetComponent<Explosion>().Pseudo) {
-                collider.enabled = false;
-            }
-            StartCoroutine(forceExplode(collider.gameObject));
+            forceDestruction(gc.centerPosition(collider.gameObject.transform.position));
         } 
     }
 
