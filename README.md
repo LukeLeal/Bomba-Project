@@ -1,5 +1,8 @@
 # Bomba-Project
 
-Bomba Project é um projeto que pretende criar um jogo baseado nas mecânicas de Bomberman, usando a ferramenta de Tilemap da Unity 2017.2.
+Bomba Project é um projeto que pretende replicar o gameplay dos jogos da série Super Bomberman.
 
-https://www.youtube.com/watch?v=otSPxqjWSIg
+Vídeos gameplay: 
+v0.3: https://www.youtube.com/watch?v=s8IwP9XqvEo
+v0.2: https://www.youtube.com/watch?v=ZXLqFou5b5A
+v0.1: https://www.youtube.com/watch?v=otSPxqjWSIg
