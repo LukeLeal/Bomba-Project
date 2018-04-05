@@ -101,12 +101,12 @@ public class GridController : Singleton<GridController> {
         gridInfo[0, 1].Spawn = true;
 
         // Criação dos blocos destrutíveis aleatórios
-        List<RegularBlock> rbs = new List<RegularBlock>();
+        List<SoftBlock> rbs = new List<SoftBlock>();
         foreach (TileInfo t in gridInfo) {
             if (!t.Spawn && t.Block == "") {
                 if (UnityEngine.Random.Range(0, 100) < 70) {
-                    t.Block = "RegularBlock";
-                    rbs.Add(Instantiate(Resources.Load<RegularBlock>("Prefabs/RegularBlock"), t.Center, Quaternion.identity));
+                    t.Block = "SoftBlock";
+                    rbs.Add(Instantiate(Resources.Load<SoftBlock>("Prefabs/SoftBlock"), t.Center, Quaternion.identity));
                 }
             }
         }
@@ -114,11 +114,11 @@ public class GridController : Singleton<GridController> {
     }
 
     /// <summary>
-    /// Define aleatoriamente quais blocos terão quais items (aleatórios)
-    /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de "rng infinita" no rngBlock
+    /// Define aleatoriamente quais blocos terão quais items (também aleatórios).
     /// </summary>
-    /// <param name="rbs"> Lista de blocos </param>
-    void randomizeItems(List<RegularBlock> blocks) {
+    /// - Atenção (23/01/2018): Otimizar o loop pra não correr risco de "rng infinita" no rngBlock
+    /// <param name="blocks"> Lista de blocos que estão no mapa. </param>
+    void randomizeItems(List<SoftBlock> blocks) {
 
         List<Tuple<string, int>> itemList = new List<Tuple<string, int>> {
             new Tuple<string, int>("BombUp", 8),

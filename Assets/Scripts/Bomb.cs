@@ -84,7 +84,7 @@ public class Bomb : MonoBehaviour, IDestructible {
     }
 
     /// <summary>
-    /// Bomba para tudo e tem sua explosão forçada (por outra bomba prestes a explodir, ou colisão com explosão).
+    /// (IDestructible): Bomba para tudo e tem sua explosão forçada (por outra bomba prestes a explodir, ou colisão com explosão).
     /// </summary>
     /// <param name="position"> Posição onde a destruição deve ocorrer. </param>
     public void forceDestruction(Vector2 position) {

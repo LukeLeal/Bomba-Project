@@ -15,13 +15,17 @@ public class Boneco : MonoBehaviour {
     int bombsMax = 1; // Quantidade de bombas do boneco
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
     int speed = 6; // Velocidade de movimento do boneco
-    bool hasKick = false;
+    bool hasKick = false; // Se possui ou não habilidade de chute
     //bool hasPunch;
     //bool hasHold;
-    bool dead = false;
+    bool dead = false; // Beta: Não pode soltar bomba por um período. Estado causado por explosão.
+
     string sfxPath = "Sounds/SFX/Boneco/";
 
-    Vector2Int curDir = new Vector2Int();
+    /// <summary>
+    /// Estado dos inputs de direção do boneco. 
+    /// </summary>
+    Vector2Int dirInputState = new Vector2Int();
 
     public const int MinFirePower = 2;
     public const int MaxFirePower = 10;
@@ -76,6 +80,7 @@ public class Boneco : MonoBehaviour {
         GetComponentsInChildren<Renderer>()[1].sortingOrder = Layer;
 
         if (!gc.randomBlocks) {
+            // Configurações pro modo sem blocos no mapa (usado pra testes)
             FirePower = 6;
             BombsMax = 20;
             hasKick = true;
@@ -85,66 +90,8 @@ public class Boneco : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        #region Update movement stuff
-
-        bool xInput = false, yInput = false, xMove = false, yMove = false, xObstacle = false, yObstacle = false;
-
-        // Análise dos inputs de movimento
-        if (Input.GetAxis("Horizontal") > 0) {
-            xInput = true;
-            xMove = possibleMove(Vector2.right, out xObstacle);
-        } else if (Input.GetAxis("Horizontal") < 0) {
-            xInput = true;
-            xMove = possibleMove(Vector2.left, out xObstacle);
-        }
-
-        if (Input.GetAxis("Vertical") > 0) {
-            yInput = true;
-            yMove = possibleMove(Vector2.up, out yObstacle);
-        } else if (Input.GetAxis("Vertical") < 0) {
-            yInput = true;
-            yMove = possibleMove(Vector2.down, out yObstacle);
-        }
-
-        if(xMove || yMove) {
-            trueDirection(xMove, yMove);
-
-            // Definição e realização do movimento
-            if (curDir[0] == 1) {
-                calculateMovement("Horizontal", xObstacle);
-            } else if (curDir[1] == 1) {
-                calculateMovement("Vertical", yObstacle);
-            }
-        } else {
-            curDir = new Vector2Int(0, 0);
-            // Apenas esquemas de rotações e animações SE houver input. Soon tm
-        }
-
-        #endregion
-
-        if (hasKick) {
-            // Provavelmente dá pra limpar um pouco essa parte
-            if (!xMove && !yMove) {
-                if (xInput) {
-                    Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
-                    Vector2 nextTile = curTile() + dir;
-
-                    GameObject content = gc.tileContent(nextTile);
-                    if (content != null && content.CompareTag("Bomb")) {
-                        content.GetComponent<Bomb>().wasKicked(dir);
-                    }
-                } else if (yInput) {
-                    Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
-                    Vector2 nextTile = curTile() + dir;
-
-                    GameObject content = gc.tileContent(nextTile);
-                    if (content != null && content.CompareTag("Bomb")) {
-                        content.GetComponent<Bomb>().wasKicked(dir);
-                    }
-                }
-            }
-        }
-
+        axisInputs();
+        
         // ATENÇÃO (16/03/18): Sincronizar joystick com jogador quando tiver multiplayer. Só tá assim agora pq os ports ficam de brincation.
         if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.JoystickButton1)) {
             placeBomb();
@@ -176,7 +123,73 @@ public class Boneco : MonoBehaviour {
         #endregion
     }
 
-#region Movement functions
+#region Axis & Movement functions
+
+    void axisInputs() {
+
+        #region Movement stuff
+
+        bool xInput = false, yInput = false,        // Houve input em tal direção (horizontal ou vertical)
+            xMove = false, yMove = false,           // Movimento possível em tal direção
+            xObstacle = false, yObstacle = false;   // Há obstáculo que limita movimento em tal direção
+
+        // Análise dos inputs de movimento
+        if (Input.GetAxis("Horizontal") > 0) {
+            xInput = true;
+            xMove = possibleMove(Vector2.right, out xObstacle);
+        } else if (Input.GetAxis("Horizontal") < 0) {
+            xInput = true;
+            xMove = possibleMove(Vector2.left, out xObstacle);
+        }
+
+        if (Input.GetAxis("Vertical") > 0) {
+            yInput = true;
+            yMove = possibleMove(Vector2.up, out yObstacle);
+        } else if (Input.GetAxis("Vertical") < 0) {
+            yInput = true;
+            yMove = possibleMove(Vector2.down, out yObstacle);
+        }
+
+        if (xMove || yMove) {
+            trueDirection(xMove, yMove);
+
+            // Definição e realização do movimento
+            if (dirInputState[0] == 1) {
+                calculateMovement("Horizontal", xObstacle);
+            } else if (dirInputState[1] == 1) {
+                calculateMovement("Vertical", yObstacle);
+            }
+        } else {
+            dirInputState = new Vector2Int(0, 0);
+            // Apenas esquemas de rotações e animações SE houver input. Soon tm
+        }
+
+        #endregion
+
+        if (hasKick) {
+            // Provavelmente dá pra limpar um pouco essa parte
+            if (!xMove && !yMove) {
+                if (xInput) {
+                    Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
+                    Vector2 nextTile = curTile() + dir;
+
+                    GameObject content = gc.tileContent(nextTile);
+                    if (content != null && content.CompareTag("Bomb")) {
+                        content.GetComponent<Bomb>().wasKicked(dir);
+                    }
+                } else if (yInput) {
+                    Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
+                    Vector2 nextTile = curTile() + dir;
+
+                    GameObject content = gc.tileContent(nextTile);
+                    if (content != null && content.CompareTag("Bomb")) {
+                        content.GetComponent<Bomb>().wasKicked(dir);
+                    }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Verifica se há alguma colisão que impede o movimento pretendido pelo boneco.
     /// </summary>
@@ -215,25 +228,25 @@ public class Boneco : MonoBehaviour {
     /// <summary>
     /// Baseado na direção antiga e nos novos inputs, define qual será a nova direção do boneco
     /// </summary>
+    /// Desenho dos estados no "autômato" na pasta "design & etc"
     /// <param name="x, y"> Se há inputs de movimento horizontal / vertical </param>
-    /// Desenho dos estados no "automato" na pasta "design & etc"
     void trueDirection(bool x, bool y) {
 
         if (x && y) {
-            if (curDir == new Vector2Int(0, 0)) { 
-                curDir = new Vector2Int(1, 2);
+            if (dirInputState == new Vector2Int(0, 0)) { 
+                dirInputState = new Vector2Int(1, 2);
 
-            } else if (curDir == new Vector2Int(1, 0)) {
-                curDir = new Vector2Int(2, 1);
+            } else if (dirInputState == new Vector2Int(1, 0)) {
+                dirInputState = new Vector2Int(2, 1);
 
-            } else if (curDir == new Vector2Int(0, 1)) { 
-                curDir = new Vector2Int(1, 2);
+            } else if (dirInputState == new Vector2Int(0, 1)) { 
+                dirInputState = new Vector2Int(1, 2);
             } 
         
         } else if (x) {
-            curDir = new Vector2Int(1, 0);
+            dirInputState = new Vector2Int(1, 0);
         } else if (y) {
-            curDir = new Vector2Int(0, 1);
+            dirInputState = new Vector2Int(0, 1);
         } 
 
     }
