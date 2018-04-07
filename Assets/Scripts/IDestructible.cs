@@ -17,7 +17,7 @@ public interface IDestructible {
     /// <summary>
     /// Força a destruição do objeto.
     /// </summary>
-    /// <param name="position"> Posição onde a destruição deve ocorrer (uso não obrigatório). </param>
+    /// <param name="position"> Posição onde a destruição deve ocorrer (uso opcional). </param>
     void forceDestruction(Vector2 position);
 
     GameObject gameObject {
