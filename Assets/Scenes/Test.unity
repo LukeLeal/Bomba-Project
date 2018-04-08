@@ -2672,7 +2672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPersistant: 0
   grid: {fileID: 496002856}
-  randomBlocks: 1
+  randomBlocks: 0
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -5928,6 +5928,11 @@ Prefab:
     - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
       propertyPath: Mute
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
+        type: 2}
+      propertyPath: BypassEffects
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

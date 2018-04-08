@@ -14,11 +14,16 @@ public class Boneco : MonoBehaviour {
     int firePower = 2; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 1; // Quantidade de bombas do boneco
     int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
-    int speed = 6; // Velocidade de movimento do boneco
     bool hasKick = false; // Se possui ou não habilidade de chute
-    //bool hasPunch;
-    //bool hasHold;
     bool dead = false; // Beta: Não pode soltar bomba por um período. Estado causado por explosão.
+    //bool hasPunch;
+    //bool hasHold; 
+
+    int speedLevel = 0;
+    float[] speeds = { 0.061f, 0.068f, 0.076f, 0.084f, 0.09f, 0.0976f, 0.106f, 0.113f, 0.122f };
+    /* 0.061, 0.0677..., 0.07625, 0.08413793103448275, 0.09037037037037, 
+        0.0976, 0.1060869565217391, 0.11348837209302325, 0.122 (chute)
+    */
 
     string sfxPath = "Sounds/SFX/Boneco/";
 
@@ -58,6 +63,19 @@ public class Boneco : MonoBehaviour {
         }
     }
 
+    public int SpeedLevel {
+        get { return speedLevel; }
+        set {
+            if (value < 0) {
+                speedLevel = 0;
+            } else if (value >= speeds.Length) {
+                speedLevel = speeds.Length - 1;
+            } else {
+                speedLevel = value;
+            }
+        }
+    }
+
     public int BombsUsed {
         get { return bombsUsed; }
         set { bombsUsed = value; }
@@ -86,6 +104,7 @@ public class Boneco : MonoBehaviour {
             // Configurações pro modo sem blocos no mapa (usado pra testes)
             FirePower = 6;
             BombsMax = 20;
+            SpeedLevel = 8;
             hasKick = true;
         }
 	}
@@ -270,13 +289,15 @@ public class Boneco : MonoBehaviour {
         //     Até onde testei, o movimento usando controle de GameCube tá 10/10. A diferença deve ser por causa do analógico,
         //     mas não deixa de ser estranho... Devo ter feito alguma bosta nas fórmulas ai, ou o teclado é RUI mesmo hue.
 
-        float moveConst = Time.deltaTime * speed; // BETA. 
+        float speed = speeds[SpeedLevel]; 
+
+        // Sdds desenho amigável.
 
         if (dir == "Vertical") {
             if (obstacle) {
                 // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
                 if (Mathf.Abs (transform.position.y - curTileCenter().y) > 0.1) {
-                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
+                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
                 } else {
                     transform.position = new Vector2(transform.position.x, curTileCenter().y);
                 }
@@ -287,16 +308,16 @@ public class Boneco : MonoBehaviour {
                 // Dependendo da distância do boneco ao centro do eixo horizontal da tile
                 if (Mathf.Abs(dif) > 0.1) {
                     // Move diagonalmente até se aproximar
-                    transform.Translate(Mathf.Sign(dif) * -1 * moveConst, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
+                    transform.Translate(Mathf.Sign(dif) * -1 * speed, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
 
                 } else if (Mathf.Abs(dif) > 0) {
                     // Coloca no centro horizontal e segue o movimento vertical
                     transform.position = new Vector2(curTileCenter().x, transform.position.y);
-                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
+                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
 
                 } else {
                     // Apenas move verticalmente
-                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0);
+                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
                 }
             }
 
@@ -304,7 +325,7 @@ public class Boneco : MonoBehaviour {
             if (obstacle) {
                 // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
                 if (Mathf.Abs (transform.position.x - curTileCenter().x) > 0.1) {
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
+                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, 0, 0);
                 } else {
                     transform.position = new Vector2(curTileCenter().x, transform.position.y);
                 }
@@ -315,16 +336,16 @@ public class Boneco : MonoBehaviour {
                 // Dependendo da distância do boneco ao centro do eixo vertical da tile
                 if (Mathf.Abs(dif) > 0.1) {
                     // Move diagonalmente até se aproximar
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, Mathf.Sign(dif) * -1 * moveConst, 0);
+                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, Mathf.Sign(dif) * -1 * speed, 0);
 
                 } else if (Mathf.Abs(dif) > 0) {
                     // Coloca no centro vertical e segue o movimento horizontal
                     transform.position = new Vector2(transform.position.x, curTileCenter().y);
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
+                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, 0, 0);
 
                 } else {
                     // Apenas move horizontalmente
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * moveConst, 0, 0);
+                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, 0, 0);
                 }
             }
         }
@@ -360,6 +381,10 @@ public class Boneco : MonoBehaviour {
 
             case "BombUp":
                 BombsMax++;
+                break;
+
+            case "SpeedUp":
+                SpeedLevel++;
                 break;
 
             case "Kick":

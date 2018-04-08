@@ -121,8 +121,9 @@ public class GridController : Singleton<GridController> {
     void randomizeItems(List<SoftBlock> blocks) {
 
         List<Tuple<string, int>> itemList = new List<Tuple<string, int>> {
-            new Tuple<string, int>("BombUp", 8),
+            new Tuple<string, int>("BombUp", 7),
             new Tuple<string, int>("FireUp", 5),
+            new Tuple<string, int>("SpeedUp", 8),
             new Tuple<string, int>("Kick", 2)
             //new Tuple<string, int>("BombUp", 10)
         };
