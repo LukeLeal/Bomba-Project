@@ -9,7 +9,7 @@ public class Boneco : MonoBehaviour {
 
     GridController gc;
 
-    //  shortcut transform.position #sdds
+    // Stats do boneco
 
     int firePower = 2; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
     int bombsMax = 1; // Quantidade de bombas do boneco
@@ -19,21 +19,45 @@ public class Boneco : MonoBehaviour {
     //bool hasPunch;
     //bool hasHold; 
 
+    /// <summary>
+    /// Nível atual de velocidade. Muda de acordo com os items "SpeedUp" acumulados.
+    /// </summary>
     int speedLevel = 0;
+
+    /// <summary>
+    /// Velocidades do boneco. 
+    /// </summary>
     float[] speeds = { 0.061f, 0.068f, 0.076f, 0.084f, 0.09f, 0.0976f, 0.106f, 0.113f, 0.122f };
-    /* 0.061, 0.0677..., 0.07625, 0.08413793103448275, 0.09037037037037, 
+    /* Valores "completos": 0.061, 0.0677..., 0.07625, 0.08413793103448275, 0.09037037037037, 
         0.0976, 0.1060869565217391, 0.11348837209302325, 0.122 (chute)
     */
 
-    string sfxPath = "Sounds/SFX/Boneco/";
+
+    // Movimento e animação
+
+    Animator animator;
 
     /// <summary>
-    /// Estado dos inputs de direção do boneco. 
+    /// Informações da última animação de movimento.
+    /// </summary>
+    string[] previousWalkAnimationState = { "Stand", "Down", "Normal", "" };
+    // { Ação, Direção, Velocidade, Carregando objeto (não usado atm) }
+    // Ação: Stand, Walk; Direção: Down, Left, Right, Up; Velocidade: Normal, Slow; Carregando: "", "Carry"
+
+    /// <summary>
+    /// Valores usados para alterar a velocidade da ANIMAÇÃO de andar do boneco. Controlado pelo SpeedLevel.
+    /// </summary>
+    float[] walkCycleMults = { 0.5f, 0.6f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1f };
+
+    /// <summary>
+    /// Guarda o estado dos inputs de direção do boneco. 
     /// </summary>
     Vector2Int movementState = new Vector2Int(); // Desenho dos estados no "autômato" na pasta "design & etc"
 
+    // Constantes
     public const int MinFirePower = 2;
     public const int MaxFirePower = 10;
+    const string sfxPath = "Sounds/SFX/Boneco/";
 
     #region gets & sets
 
@@ -73,6 +97,8 @@ public class Boneco : MonoBehaviour {
             } else {
                 speedLevel = value;
             }
+
+            animator.SetFloat("WalkCycleSpeed", walkCycleMults[SpeedLevel]); // Atualiza a velocidade da animação de andar
         }
     }
 
@@ -95,17 +121,21 @@ public class Boneco : MonoBehaviour {
 
     #endregion
 
-    // Use this for initialization
     void Start () {
         gc = GridController.instance;
         GetComponentsInChildren<Renderer>()[1].sortingOrder = Layer;
-
+        animator = GetComponentsInChildren<Animator>()[0];
         if (!gc.randomBlocks) {
             // Configurações pro modo sem blocos no mapa (usado pra testes)
             FirePower = 6;
             BombsMax = 20;
             SpeedLevel = 8;
             hasKick = true;
+        } else {
+            FirePower = 2;
+            BombsMax = 1;
+            SpeedLevel = 0;
+            hasKick = false;
         }
 	}
 	
@@ -148,52 +178,85 @@ public class Boneco : MonoBehaviour {
 #region Axis & Movement functions
 
     /// <summary>
-    /// Trata os inputs dos eixos de movimento. 
+    /// Analisa os inputs dos eixos de movimento e realiza as ações que forem possíveis (mover o boneco, chutar uma bomba).
     /// </summary>
     void axisInputs() {
 
-        bool xInput = false, yInput = false,        // Houve input em tal direção (horizontal ou vertical)
-            xMove = false, yMove = false,           // Movimento possível em tal direção
-            xObstacle = false, yObstacle = false;   // Há obstáculo que limita movimento em tal direção
+        // Informações da última animação de movimento. Ver declaração de "previousWalkAnimationState"
+        string[] walkAnimationState = (string[])previousWalkAnimationState.Clone();
+
+        string xsInput = "", ysInput = "", // Qual o input em tal direção do respectivo eixo ("" = nenhum)
+            xsMove = "", ysMove = ""; // Qual o movimento possível em tal direção do respectivo eixo ("" = nenhum)
+        bool xObstacle = false, yObstacle = false;   // Há obstáculo que limita movimento em tal eixo
 
         // Análise dos inputs de movimento
+
         if (Input.GetAxis("Horizontal") > 0) {
-            xInput = true;
-            xMove = possibleMove(Vector2.right, out xObstacle);
+            xsInput = "Right";
+            if (possibleMove(Vector2.right, out xObstacle)) {
+                xsMove = "Right";
+            }       
+            
         } else if (Input.GetAxis("Horizontal") < 0) {
-            xInput = true;
-            xMove = possibleMove(Vector2.left, out xObstacle);
+            xsInput = "Left";
+            if (possibleMove(Vector2.left, out xObstacle)) {
+                xsMove = "Left";
+            }
         }
 
         if (Input.GetAxis("Vertical") > 0) {
-            yInput = true;
-            yMove = possibleMove(Vector2.up, out yObstacle);
-        } else if (Input.GetAxis("Vertical") < 0) {
-            yInput = true;
-            yMove = possibleMove(Vector2.down, out yObstacle);
-        }
-
-        if (xMove || yMove) {
-            updateMovementState(xMove, yMove);
-
-            // Definição e realização do movimento
-            if (movementState[0] == 1) {
-                calculateMovement("Horizontal", xObstacle);
-            } else if (movementState[1] == 1) {
-                calculateMovement("Vertical", yObstacle);
+            ysInput = "Up";
+            if (possibleMove(Vector2.up, out yObstacle)) {
+                ysMove = "Up";
             }
-        } else {
-            movementState = new Vector2Int(0, 0); // Sem movimento
-
-            // Esquemas de rotações e animações SE houver input. Soon tm
+        } else if (Input.GetAxis("Vertical") < 0) {
+            ysInput = "Down";
+            if (possibleMove(Vector2.down, out yObstacle)) {
+                ysMove = "Down";
+            }
         }
 
+        // Determinação e (se possível) realização do movimento, além de sua animação.
+
+        if (updateMovementState(xsMove != "", ysMove != "")) {
+            // Há movimento
+
+            walkAnimationState[0] = "Walk";
+            walkAnimationState[2] = "Normal";
+
+            if (movementState[0] == 1) {
+                calculateMovement(xsMove, xObstacle);
+                walkAnimationState[1] = xsMove;
+
+            } else if (movementState[1] == 1) {
+                calculateMovement(ysMove, yObstacle);
+                walkAnimationState[1] = ysMove;
+            }
+
+        } else {
+            // Não há movimento
+
+            if (xsInput != "") {
+                walkAnimationState[0] = "Walk";
+                walkAnimationState[1] = xsInput;
+                walkAnimationState[2] = "Slow";         
+
+            }  else if (ysInput != "") {
+                walkAnimationState[0] = "Walk";
+                walkAnimationState[1] = ysInput;
+                walkAnimationState[2] = "Slow";
+
+            } else {
+                walkAnimationState[0] = "Stand";
+            }       
+        }
+
+        // Coisas do chute (Provavelmente dá pra limpar um pouco essa parte)
 
         if (hasKick) {
 
-            // Provavelmente dá pra limpar um pouco essa parte
-            if (!xMove && !yMove) {
-                if (xInput) {
+            if (xsMove == "" && ysMove == "") {
+                if (xsInput != "") {
                     Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
                     Vector2 nextTile = curTileCenter() + dir;
 
@@ -201,7 +264,7 @@ public class Boneco : MonoBehaviour {
                     if (content != null && content.CompareTag("Bomb")) {
                         content.GetComponent<Bomb>().wasKicked(dir);
                     }
-                } else if (yInput) {
+                } else if (ysInput != "") {
                     Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
                     Vector2 nextTile = curTileCenter() + dir;
 
@@ -212,6 +275,10 @@ public class Boneco : MonoBehaviour {
                 }
             }
         }
+
+        // Animação
+        playWalkAnimation(walkAnimationState);
+        previousWalkAnimationState = (string[])walkAnimationState.Clone();
     }
 
     /// <summary>
@@ -253,7 +320,8 @@ public class Boneco : MonoBehaviour {
     /// </summary>
     /// <param name="xMove"> Se há input e possibilidade de movimento horizontal. </param>
     /// <param name="yMove"> Se há input e possibilidade de movimento vertical. </param>
-    void updateMovementState(bool xMove, bool yMove) {
+    /// <returns> Se há movimento ou não </returns>
+    bool updateMovementState(bool xMove, bool yMove) {
         // Interação entre os estados em "MovementState - 'Automato'" na pasta "Design & etc".
         // Desenho amigável em "UpdateMovementState - Exemplo" na pasta "Design & etc".
 
@@ -272,8 +340,12 @@ public class Boneco : MonoBehaviour {
             movementState = new Vector2Int(1, 0);
         } else if (yMove) {
             movementState = new Vector2Int(0, 1);
-        } 
+        } else {
+            movementState = new Vector2Int(0, 0);
+            return false; 
+        }
 
+        return true; 
     }
 
     /// <summary>
@@ -289,43 +361,22 @@ public class Boneco : MonoBehaviour {
         //     Até onde testei, o movimento usando controle de GameCube tá 10/10. A diferença deve ser por causa do analógico,
         //     mas não deixa de ser estranho... Devo ter feito alguma bosta nas fórmulas ai, ou o teclado é RUI mesmo hue.
 
-        float speed = speeds[SpeedLevel]; 
+        float speed = speeds[SpeedLevel];
+        int directionSign = 0; // Indica se o movimento eve aumentar ou diminuir o x ou y da posição do boneco. Nome beta
+
+        if(dir == "Right" || dir == "Up") {
+            directionSign = 1;
+        } else if (dir == "Left" || dir == "Down") {
+            directionSign = -1;
+        }
 
         // Sdds desenho amigável.
 
-        if (dir == "Vertical") {
+        if (dir == "Right" || dir == "Left") {
             if (obstacle) {
                 // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
-                if (Mathf.Abs (transform.position.y - curTileCenter().y) > 0.1) {
-                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
-                } else {
-                    transform.position = new Vector2(transform.position.x, curTileCenter().y);
-                }
-
-            } else { // Vertical sem obstáculo
-                float dif = transform.position.x - curTileCenter().x;
-
-                // Dependendo da distância do boneco ao centro do eixo horizontal da tile
-                if (Mathf.Abs(dif) > 0.1) {
-                    // Move diagonalmente até se aproximar
-                    transform.Translate(Mathf.Sign(dif) * -1 * speed, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
-
-                } else if (Mathf.Abs(dif) > 0) {
-                    // Coloca no centro horizontal e segue o movimento vertical
-                    transform.position = new Vector2(curTileCenter().x, transform.position.y);
-                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
-
-                } else {
-                    // Apenas move verticalmente
-                    transform.Translate(0, Mathf.Sign(Input.GetAxis(dir)) * speed, 0);
-                }
-            }
-
-        } else if (dir == "Horizontal") {
-            if (obstacle) {
-                // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
-                if (Mathf.Abs (transform.position.x - curTileCenter().x) > 0.1) {
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, 0, 0);
+                if (Mathf.Abs(transform.position.x - curTileCenter().x) > 0.1) {
+                    transform.Translate(directionSign * speed, 0, 0);
                 } else {
                     transform.position = new Vector2(curTileCenter().x, transform.position.y);
                 }
@@ -336,21 +387,106 @@ public class Boneco : MonoBehaviour {
                 // Dependendo da distância do boneco ao centro do eixo vertical da tile
                 if (Mathf.Abs(dif) > 0.1) {
                     // Move diagonalmente até se aproximar
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, Mathf.Sign(dif) * -1 * speed, 0);
+                    transform.Translate(directionSign * speed, Mathf.Sign(dif) * -1 * speed, 0);
 
                 } else if (Mathf.Abs(dif) > 0) {
                     // Coloca no centro vertical e segue o movimento horizontal
                     transform.position = new Vector2(transform.position.x, curTileCenter().y);
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, 0, 0);
+                    transform.Translate(directionSign * speed, 0, 0);
 
                 } else {
                     // Apenas move horizontalmente
-                    transform.Translate(Mathf.Sign(Input.GetAxis(dir)) * speed, 0, 0);
+                    transform.Translate(directionSign * speed, 0, 0);
                 }
             }
+
+        } else if (dir == "Up" || dir == "Down") {
+            if (obstacle) {
+                // Com obstáculo à frente, pode apenas ir até o meio do eixo corrente
+                if (Mathf.Abs(transform.position.y - curTileCenter().y) > 0.1) {
+                    transform.Translate(0, directionSign * speed, 0);
+                } else {
+                    transform.position = new Vector2(transform.position.x, curTileCenter().y);
+                }
+
+            } else { // Vertical sem obstáculo
+                float dif = transform.position.x - curTileCenter().x;
+
+                // Dependendo da distância do boneco ao centro do eixo horizontal da tile
+                if (Mathf.Abs(dif) > 0.1) {
+                    // Move diagonalmente até se aproximar
+                    transform.Translate(Mathf.Sign(dif) * -1 * speed, directionSign * speed, 0);
+
+                } else if (Mathf.Abs(dif) > 0) {
+                    // Coloca no centro horizontal e segue o movimento vertical
+                    transform.position = new Vector2(curTileCenter().x, transform.position.y);
+                    transform.Translate(0, directionSign * speed, 0);
+
+                } else {
+                    // Apenas move verticalmente
+                    transform.Translate(0, directionSign * speed, 0);
+                }
+            }
+        } else {
+            Debug.Log("PutaVida.exception: Impossible direction");
         }
     }
 #endregion
+
+    /// <summary>
+    /// Faz o animator iniciar a devida animação (se já não for a atual).
+    /// </summary>
+    /// <param name="animationInfo"> Vetor com os informações da animação que deve ocorrer (ver </param>
+    void playWalkAnimation(string[] animationInfo) {
+
+        string newAnimationName = "";
+        if (animationInfo[0] == "Walk") {
+            newAnimationName = animationInfo[0] + animationInfo[1] + animationInfo[2]; // Completa o nome do estado
+        } else if (animationInfo[0] == "Stand") {
+            newAnimationName = animationInfo[0];
+        } else { 
+            Debug.Log("PutaVida.exception: Impossible walk animation state");
+            return;
+        }
+
+        // Só faz algo se tiver que trocar a animação
+        if (!animator.GetCurrentAnimatorStateInfo(0).IsName(newAnimationName)) {
+
+            if (animationInfo[0] == "Walk") {
+            // Lembrete: Por serem diretamente relacionados, a velocidade da animação é ajustada junto com a do movimento (ver SpeedLevel set)
+
+                // Se já estava andando antes, porém de outra forma
+                if (previousWalkAnimationState[0] == "Walk") {
+                    // Precisa continuar de onde o ciclo antigo estava. Pra animação ficar fluida.                    
+                    animator.Play(newAnimationName, -1, animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
+                } else {
+                    // Se não, começa animação nova do 0. 
+                    animator.Play(newAnimationName);
+                }
+
+            } else if (animationInfo[0] == "Stand") {
+                /* A animação do estado Stand não é uma animação propriamente dita. 
+                 * Ela apenas guarda ordenadamente os sprites do Boneco parado nas diferentes direções.
+                 * A velocidade do animator no estado sempre é 0. Assim, ñão ocorre qualquer troca dos sprites.
+                 * Pra acesar a direção desejada, use a devida sample 
+                 * */
+
+                float standSpriteTime = 0f;
+                if(animationInfo[1] == "Down") {
+                    standSpriteTime = 0f; // 1º sprite
+                } else if (animationInfo[1] == "Left") {
+                    standSpriteTime = 0.25f; // 2º sprite
+                } else if (animationInfo[1] == "Right") {
+                    standSpriteTime = 0.5f; // 3º sprite
+                } else if (animationInfo[1] == "Up"){
+                    standSpriteTime = 0.75f; // 4º sprite
+                } else {
+                    Debug.Log("PutaVida.exception: Impossible animation direction");
+                }
+                animator.Play(newAnimationName, -1, standSpriteTime);
+            }
+        }
+    }
 
     /// <summary>
     /// Cria bomba na tile atual se possível

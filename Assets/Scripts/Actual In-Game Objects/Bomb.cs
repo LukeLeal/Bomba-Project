@@ -9,17 +9,19 @@ public class Bomb : MonoBehaviour, IDestructible {
     int power; // Tiles além do centro ocupado pela explosão (min 1)
 
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
-    Boneco owner; // Boneco dono da bomba. 
+    Boneco owner; // Boneco que criou a bomba. 
     GridController gc;
     string sfxPath = "Sounds/SFX/Bomb/"; // Caminho pros sound effects.
     string explosionPath = "Prefabs/Explosions/Explosion"; // Caminho pros prefabs das explosões
 
+    Coroutine tickCR; // Corotina que controla o tempo até a explosão
+    Coroutine slideCR; // Corotina que controla o movimento terrestre
+
+    Animator anim; 
+
     public const int Ticking = 1;
     public const int NotTicking = 2;
     public const int Exploding = 11;
-
-    Coroutine tickCR; // Corotina que controla o tempo até a explosão
-    Coroutine slideCR; // Corotina que controla o movimento terrestre
 
     public int Power {
         get { return power; }
@@ -74,6 +76,9 @@ public class Bomb : MonoBehaviour, IDestructible {
         GetComponent<AudioSource>().clip = (AudioClip) Resources.Load(sfxPath + "PlaceBomb");
         GetComponent<AudioSource>().Play();
         tickCR = StartCoroutine(tick());
+
+        anim = GetComponent<Animator>();
+
     }
 
     #region Ticking & pre-explosion
@@ -81,7 +86,6 @@ public class Bomb : MonoBehaviour, IDestructible {
     /// Tempo até explodir. Terá mudanças quando o estado NotTicking for implementado (provavelmente usando deltaTime).
     /// </summary>
     IEnumerator tick() {
-        // #sdds animação
         yield return new WaitForSeconds(2.5f);
         state = Exploding;
         if (slideCR != null) {
