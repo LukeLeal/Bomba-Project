@@ -17,7 +17,7 @@ public class Bomb : MonoBehaviour, IDestructible {
     Coroutine tickCR; // Corotina que controla o tempo até a explosão
     Coroutine slideCR; // Corotina que controla o movimento terrestre
 
-    Animator anim; 
+    // Animator anim; 
 
     public const int Ticking = 1;
     public const int NotTicking = 2;
@@ -77,8 +77,7 @@ public class Bomb : MonoBehaviour, IDestructible {
         GetComponent<AudioSource>().Play();
         tickCR = StartCoroutine(tick());
 
-        anim = GetComponent<Animator>();
-
+        // anim = GetComponent<Animator>();
     }
 
     #region Ticking & pre-explosion

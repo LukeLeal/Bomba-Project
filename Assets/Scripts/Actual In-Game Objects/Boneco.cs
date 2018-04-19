@@ -25,12 +25,9 @@ public class Boneco : MonoBehaviour {
     int speedLevel = 0;
 
     /// <summary>
-    /// Velocidades do boneco. 
+    /// Velocidades do boneco. Nível controlado por speedLevel.
     /// </summary>
     float[] speeds = { 0.061f, 0.068f, 0.076f, 0.084f, 0.09f, 0.0976f, 0.106f, 0.113f, 0.122f };
-    /* Valores "completos": 0.061, 0.0677..., 0.07625, 0.08413793103448275, 0.09037037037037, 
-        0.0976, 0.1060869565217391, 0.11348837209302325, 0.122 (chute)
-    */
 
 
     // Movimento e animação
@@ -48,15 +45,22 @@ public class Boneco : MonoBehaviour {
     /// Valores usados para alterar a velocidade da ANIMAÇÃO de andar do boneco. Controlado pelo SpeedLevel.
     /// </summary>
     float[] walkCycleMults = { 0.5f, 0.6f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1f };
+    // Valores beta. Investigação no jogo original necessária.
 
     /// <summary>
     /// Guarda o estado dos inputs de direção do boneco. 
     /// </summary>
     Vector2Int movementState = new Vector2Int(); // Desenho dos estados no "autômato" na pasta "design & etc"
 
+    // Identificação do jogador e seus respectivos botões e eixos
+    public string player = "Player1"; // Identificação padrão. Definir nova pelo editor.
+    string bombButton = "Bomb-";
+    string horizontalAxis = "Horizontal-";
+    string verticalAxis = "Vertical-";
+    
     // Constantes
-    public const int MinFirePower = 2;
-    public const int MaxFirePower = 10;
+    const int MinFirePower = 2;
+    const int MaxFirePower = 10;
     const string sfxPath = "Sounds/SFX/Boneco/";
 
     #region gets & sets
@@ -137,21 +141,20 @@ public class Boneco : MonoBehaviour {
             SpeedLevel = 0;
             hasKick = false;
         }
-	}
-	
-	// Update is called once per frame
-	void Update () {
 
-        axisInputs();
-        
-        // ATENÇÃO (16/03/18): Sincronizar joystick com jogador quando tiver multiplayer. Só tá assim agora pq os ports ficam de brincation.
-        if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.JoystickButton1)) {
-            placeBomb();
+        // Setando os nomes dos botões
+        if (player.StartsWith("Player")) {
+            bombButton += player;
+            horizontalAxis += player;
+            verticalAxis += player;
+        } else {
+            Debug.Log("PutaVida.Exception: Player identification module failed!");
         }
+	}
 
-        #region other inputs
-        // http://wiki.unity3d.com/index.php?title=Xbox360Controller
-        /* PC Mode WiiU Adapter:
+    // http://wiki.unity3d.com/index.php?title=Xbox360Controller
+    /*  Mayflash GameCube Controller Adapter for WiiU & PC USB (PC Mode)
+        Joystick Buttons: 
             0: X
             1: A
             2: B
@@ -161,18 +164,29 @@ public class Boneco : MonoBehaviour {
             6: ???
             7: Z
             8: ???
-        */
 
-        // Literal Pause. Ayy lmao
+        Ports: 
+            Port 1: Joystick 6
+            Port 2: Joystick 5
+            Port 3: Joystick 4
+            Port 4: Joystick 7
+
+        As-is, não sei afirmar se há diferenças no gameplay entre os inputs do teclado e do controle. Ambos parecem iguais.
+    */
+    // Update is called once per frame
+    void Update () {
+
+        axisInputs();
+
+        if (Input.GetButtonDown(bombButton)) {
+            placeBomb();
+        }
+
+        // Debug pause. Não confundir com pause in-game. 
         if (Input.GetKeyDown(KeyCode.JoystickButton7)) {
-            Debug.Break();
+            Debug.Break(); // ZA WARUDO!
         }
 
-        if (Input.GetKeyDown(KeyCode.C)) {
-            //Debug.Log(GridController.instance.grid.WorldToLocal(transform.position));
-            //Debug.Log(gc.tileContent((Vector2)transform.position + Vector2.up).name);
-        }
-        #endregion
     }
 
 #region Axis & Movement functions
@@ -191,32 +205,32 @@ public class Boneco : MonoBehaviour {
 
         // Análise dos inputs de movimento
 
-        if (Input.GetAxis("Horizontal") > 0) {
+        if (Input.GetAxis(horizontalAxis) > 0) {
             xsInput = "Right";
             if (possibleMove(Vector2.right, out xObstacle)) {
                 xsMove = "Right";
             }       
             
-        } else if (Input.GetAxis("Horizontal") < 0) {
+        } else if (Input.GetAxis(horizontalAxis) < 0) {
             xsInput = "Left";
             if (possibleMove(Vector2.left, out xObstacle)) {
                 xsMove = "Left";
             }
         }
 
-        if (Input.GetAxis("Vertical") > 0) {
+        if (Input.GetAxis(verticalAxis) > 0) {
             ysInput = "Up";
             if (possibleMove(Vector2.up, out yObstacle)) {
                 ysMove = "Up";
             }
-        } else if (Input.GetAxis("Vertical") < 0) {
+        } else if (Input.GetAxis(verticalAxis) < 0) {
             ysInput = "Down";
             if (possibleMove(Vector2.down, out yObstacle)) {
                 ysMove = "Down";
             }
         }
 
-        // Determinação e (se possível) realização do movimento, além de sua animação.
+        // Determinação e (se possível) realização do movimento. Também determina alguns aspectos da animação a ser realizada.
 
         if (updateMovementState(xsMove != "", ysMove != "")) {
             // Há movimento
@@ -251,13 +265,13 @@ public class Boneco : MonoBehaviour {
             }       
         }
 
-        // Coisas do chute (Provavelmente dá pra limpar um pouco essa parte)
+        // Coisas do chute 
 
         if (hasKick) {
-
+            // ATENÇÃO (19/04/2018): Essa parte precisa de Tender Loving Care
             if (xsMove == "" && ysMove == "") {
                 if (xsInput != "") {
-                    Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis("Horizontal")), 0);
+                    Vector2 dir = new Vector2(Mathf.Sign(Input.GetAxis(horizontalAxis)), 0);
                     Vector2 nextTile = curTileCenter() + dir;
 
                     GameObject content = gc.tileContent(nextTile);
@@ -265,7 +279,7 @@ public class Boneco : MonoBehaviour {
                         content.GetComponent<Bomb>().wasKicked(dir);
                     }
                 } else if (ysInput != "") {
-                    Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis("Vertical")));
+                    Vector2 dir = new Vector2(0, Mathf.Sign(Input.GetAxis(verticalAxis)));
                     Vector2 nextTile = curTileCenter() + dir;
 
                     GameObject content = gc.tileContent(nextTile);
@@ -355,11 +369,7 @@ public class Boneco : MonoBehaviour {
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     /// <param name="obstacle"> Se há algum elemento à frente que limita o movimento </param>
     void calculateMovement(string dir, bool obstacle) {
-        // - ATENÇÃO (Janeiro/2018): O translate pra fazer o movimento quebra o galho, mas não acho ideal. 
-        //     O boneco fica com um "Efeito Luigi". Vai um pouco mais à frente do que deve nos movimentos.
-        // - Update (16/03/2018): O "Efeito Luigi" aparentemente só ocorre quando usa teclado como input.    
-        //     Até onde testei, o movimento usando controle de GameCube tá 10/10. A diferença deve ser por causa do analógico,
-        //     mas não deixa de ser estranho... Devo ter feito alguma bosta nas fórmulas ai, ou o teclado é RUI mesmo hue.
+        // ATENÇÃO (19/04/2018): Método precisa de Tender Loving Care. Sdds desenho amigável.
 
         float speed = speeds[SpeedLevel];
         int directionSign = 0; // Indica se o movimento eve aumentar ou diminuir o x ou y da posição do boneco. Nome beta
@@ -369,8 +379,6 @@ public class Boneco : MonoBehaviour {
         } else if (dir == "Left" || dir == "Down") {
             directionSign = -1;
         }
-
-        // Sdds desenho amigável.
 
         if (dir == "Right" || dir == "Left") {
             if (obstacle) {
@@ -431,12 +439,12 @@ public class Boneco : MonoBehaviour {
             Debug.Log("PutaVida.exception: Impossible direction");
         }
     }
-#endregion
+    #endregion
 
     /// <summary>
     /// Faz o animator iniciar a devida animação (se já não for a atual).
     /// </summary>
-    /// <param name="animationInfo"> Vetor com os informações da animação que deve ocorrer (ver </param>
+    /// <param name="animationInfo"> Vetor com as informações da animação que deve ocorrer (ver definição previousWalkAnimationState)  </param>
     void playWalkAnimation(string[] animationInfo) {
 
         string newAnimationName = "";
@@ -535,7 +543,7 @@ public class Boneco : MonoBehaviour {
     }
 
     /// <summary>
-    /// BETA. Controla o tempo em que o boneco fica no estado dead (sem bombas e vermelho)
+    /// BETA. Controla o tempo em que o boneco fica no estado dead (sem bombas e vermelho).
     /// </summary>
     IEnumerator die() {
         yield return new WaitForSeconds(1.5f);

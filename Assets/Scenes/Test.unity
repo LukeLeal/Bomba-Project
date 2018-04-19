@@ -2504,7 +2504,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a0111fb13ce05e4785fc402e5c9ec9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isPersistant: 0
   grid: {fileID: 496002856}
   randomBlocks: 1
 --- !u!4 &884131895
