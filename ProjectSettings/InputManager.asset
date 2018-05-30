@@ -164,7 +164,7 @@ InputManager:
     invert: 0
     type: 2
     axis: 0
-    joyNum: 6
+    joyNum: 4
   - serializedVersion: 3
     m_Name: Vertical-Player1
     descriptiveName: 
@@ -180,13 +180,13 @@ InputManager:
     invert: 1
     type: 2
     axis: 1
-    joyNum: 6
+    joyNum: 4
   - serializedVersion: 3
     m_Name: Bomb-Player1
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: 
-    positiveButton: joystick 6 button 1
+    positiveButton: joystick 4 button 1
     altNegativeButton: 
     altPositiveButton: g
     gravity: 3
