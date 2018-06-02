@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class Boneco : MonoBehaviour {
 
-    GridController gc;
+    GridCalculator gc;
 
     // Stats do boneco
 
@@ -126,9 +126,12 @@ public class Boneco : MonoBehaviour {
     #endregion
 
     void Start () {
-        gc = GridController.instance;
+        gc = GridCalculator.Instance;
         GetComponentsInChildren<Renderer>()[1].sortingOrder = Layer;
         animator = GetComponentsInChildren<Animator>()[0];
+
+        // Configuração "sandbox" será definida no futuro spawn do boneco no GridController.
+        /* 
         if (!gc.randomBlocks) {
             // Configurações pro modo sem blocos no mapa (usado pra testes)
             FirePower = 6;
@@ -140,7 +143,12 @@ public class Boneco : MonoBehaviour {
             BombsMax = 1;
             SpeedLevel = 0;
             hasKick = false;
-        }
+        }*/
+
+        FirePower = 2;
+        BombsMax = 1;
+        SpeedLevel = 0;
+        hasKick = false;
 
         // Setando os nomes dos botões
         if (player.StartsWith("Player")) {

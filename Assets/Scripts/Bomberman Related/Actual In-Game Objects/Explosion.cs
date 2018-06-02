@@ -41,7 +41,7 @@ public class Explosion : MonoBehaviour {
     /// Dá pra ter um nome melhor. Talvez trocar esse ou os outros métodos na Bomb, Soft-Block e tals. 
     IEnumerator exploding() {
         yield return new WaitForSeconds(ExplosionTime);
-
+        
         if (center && GetComponent<AudioSource>() != null) {
             GetComponent<SpriteRenderer>().enabled = false;
             GetComponent<Collider2D>().enabled = false;

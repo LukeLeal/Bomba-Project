@@ -2498,9 +2498,10 @@ GameObject:
   m_Component:
   - component: {fileID: 496002857}
   - component: {fileID: 496002856}
+  - component: {fileID: 496002858}
   m_Layer: 0
   m_Name: Grid
-  m_TagString: Untagged
+  m_TagString: Grid
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2532,6 +2533,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &496002858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 496002855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebfbba55c53b9414587a02d7c0b350c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  preserved: 0
+  grid: {fileID: 496002856}
 --- !u!1 &884131893
 GameObject:
   m_ObjectHideFlags: 0
@@ -2543,7 +2557,7 @@ GameObject:
   - component: {fileID: 884131894}
   m_Layer: 0
   m_Name: GameController idk
-  m_TagString: Untagged
+  m_TagString: GameController
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2559,8 +2573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a0111fb13ce05e4785fc402e5c9ec9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grid: {fileID: 496002856}
-  randomBlocks: 0
+  randomBlocks: 1
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0

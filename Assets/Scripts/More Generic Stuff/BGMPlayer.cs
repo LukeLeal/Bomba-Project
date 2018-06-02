@@ -17,7 +17,7 @@ public class BGMPlayer : MonoBehaviour {
         new Tuple<string, int, int>("Super Bomberman 5 - Zone 1", 0, int.MaxValue),
         new Tuple<string, int, int>("Super Bomberman 5 - Battle Theme 2", 286720, 3039049)
         // new Tuple<string, int, int>("", 0, int.MaxValue),
-    };
+    }; // 02/06/2018: Seria legal setar esse esquema usando um txt. Deixaria mais versátil / reusável
 
     void Start () {
         if (source == null) {

@@ -5,12 +5,13 @@ using UnityEngine;
 
 public class Bomb : MonoBehaviour, IDestructible {
 
+    GridCalculator gc;
+
     // Dados da bomba
     int power; // Tiles além do centro ocupado pela explosão (min 1)
 
     int state; // 1: Ticking; 2: Not ticking; 11: Explosion
     Boneco owner; // Boneco que criou a bomba. 
-    GridController gc;
     string sfxPath = "Sounds/SFX/Bomb/"; // Caminho pros sound effects.
     string explosionPath = "Prefabs/Explosions/Explosion"; // Caminho pros prefabs das explosões
 
@@ -67,7 +68,7 @@ public class Bomb : MonoBehaviour, IDestructible {
     /// </summary>
     /// <param name="b"> Boneco que criou a bomba. </param>
     public void setup(Boneco b) {
-        gc = GridController.instance;
+        gc = GridCalculator.Instance;
         owner = b;
         power = b.FirePower;
         transform.position = gc.centerPosition(b.transform.position);
@@ -231,7 +232,7 @@ public class Bomb : MonoBehaviour, IDestructible {
     /// </summary>
     /// <param name="dir"> Direção (e.g. Vector2.up) </param>
     public void wasKicked(Vector2 dir) {
-        if (state != Exploding && gameObject.layer == GridController.Objects && slideCR == null && possibleSlide(dir)) {
+        if (state != Exploding && gameObject.layer == GridCalculator.Objects && slideCR == null && possibleSlide(dir)) {
             GetComponent<AudioSource>().clip = (AudioClip)Resources.Load(sfxPath + "KickBomb");
             GetComponent<AudioSource>().Play();
             slideCR = StartCoroutine(Slide(dir));
@@ -261,7 +262,7 @@ public class Bomb : MonoBehaviour, IDestructible {
     /// <returns> Movimento possível ou não </returns>
     bool possibleSlide(Vector2 dir) {
 
-        List<GameObject> contents = gc.tileContent((Vector2)transform.position + dir, GridController.Objects, GridController.Bonecos);
+        List<GameObject> contents = gc.tileContent((Vector2)transform.position + dir, GridCalculator.Objects, GridCalculator.Bonecos);
 
         if (contents.Count > 0) {
 

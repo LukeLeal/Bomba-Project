@@ -43,7 +43,7 @@ public class SoftBlock : MonoBehaviour, IDestructible {
     IEnumerator exploding() {
         yield return new WaitForSeconds(Explosion.ExplosionTime);
         if(ItemName != "") {
-            Item i = Instantiate(Resources.Load<Item>("Prefabs/Items/" + ItemName), GridController.instance.centerPosition(transform.position), 
+            Item i = Instantiate(Resources.Load<Item>("Prefabs/Items/" + ItemName), GridCalculator.Instance.centerPosition(transform.position), 
                 Quaternion.identity);
             i.name = ItemName;
         }
