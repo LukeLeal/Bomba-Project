@@ -462,7 +462,6 @@ GameObject:
   - component: {fileID: 133805851}
   - component: {fileID: 133805850}
   - component: {fileID: 133805849}
-  - component: {fileID: 133805852}
   m_Layer: 10
   m_Name: Border
   m_TagString: Border
@@ -2393,17 +2392,6 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!114 &133805852
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 133805847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 269d4774747000c488fe61748a7cd82a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &164217781
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2444,50 +2432,44 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4278307143133424, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+    - target: {fileID: 4876697484730362, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 212583539210445246, guid: 0a41dfd013741ce46828bc7dd2fed5bb,
-        type: 2}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 69d07fe6b2c25c848bc2517538864bf0,
-        type: 3}
-    - target: {fileID: 1054432819005478, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
-      propertyPath: m_Name
-      value: Boneco 1
+    - target: {fileID: 1196142939538826, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 100100000, guid: 0a41dfd013741ce46828bc7dd2fed5bb, type: 2}
+  m_ParentPrefab: {fileID: 100100000, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
   m_IsPrefabParent: 0
 --- !u!1 &496002855
 GameObject:
@@ -2573,7 +2555,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a0111fb13ce05e4785fc402e5c9ec9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  randomBlocks: 1
+  sandboxMode: 0
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -5350,7 +5332,6 @@ GameObject:
   - component: {fileID: 1086196397}
   - component: {fileID: 1086196396}
   - component: {fileID: 1086196398}
-  - component: {fileID: 1086196399}
   m_Layer: 10
   m_Name: GridBlocks
   m_TagString: GridBlocks
@@ -5760,17 +5741,6 @@ TilemapCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
---- !u!114 &1086196399
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1086196394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 269d4774747000c488fe61748a7cd82a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1431996020
 Prefab:
   m_ObjectHideFlags: 0
@@ -5833,29 +5803,6 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: f56988698f892e14ea9c3c01ef64c937, type: 2}
   m_IsPrefabParent: 0
---- !u!1 &1532408713 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1053581561439166, guid: 0a41dfd013741ce46828bc7dd2fed5bb,
-    type: 2}
-  m_PrefabInternal: {fileID: 192016427}
---- !u!95 &1532408714
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1532408713}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: fdc2c2dd14d89e8469eb2a54c599adac, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &2043782931
 GameObject:
   m_ObjectHideFlags: 0

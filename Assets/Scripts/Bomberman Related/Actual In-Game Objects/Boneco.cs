@@ -7,17 +7,31 @@ using UnityEngine;
 /// </summary>
 public class Boneco : MonoBehaviour {
 
-    GridCalculator gc;
-
     // Stats do boneco
+    /// <summary>
+    /// Tiles além do centro ocupado pela explosão da bomba deste boneco (min = 1)
+    /// </summary>
+    int firePower = 2;
 
-    int firePower = 2; // Tiles além do centro ocupado pela explosão da bomba (min = 1)
-    int bombsMax = 1; // Quantidade de bombas do boneco
-    int bombsUsed = 0; // Quantidade de bombas em uso (max = bombsMax)
-    bool hasKick = false; // Se possui ou não habilidade de chute
-    bool dead = false; // Beta: Não pode soltar bomba por um período. Estado causado por explosão.
-    //bool hasPunch;
-    //bool hasHold; 
+    /// <summary>
+    /// Quantidade máxima de bombas que podem ser usadas pelo boneco ao mesmo tempo
+    /// </summary>
+    int bombsMax = 1;
+
+    /// <summary>
+    /// Quantidade de bombas em uso pelo boneco (máximo = bombsMax)
+    /// </summary>
+    int bombsUsed = 0;
+
+    /// <summary>
+    /// Se o boneco possui a habilidade de chutar bombas
+    /// </summary>
+    bool hasKick = false;
+
+    /// <summary>
+    /// Beta - Não pode soltar bomba por um período. Estado causado por explosão.
+    /// </summary>
+    bool dead = false; 
 
     /// <summary>
     /// Nível atual de velocidade. Muda de acordo com os items "SpeedUp" acumulados.
@@ -29,9 +43,10 @@ public class Boneco : MonoBehaviour {
     /// </summary>
     float[] speeds = { 0.061f, 0.068f, 0.076f, 0.084f, 0.09f, 0.0976f, 0.106f, 0.113f, 0.122f };
 
-
-    // Movimento e animação
-
+    // Animação
+    /// <summary>
+    /// Controlador de animações do boneco.
+    /// </summary>
     Animator animator;
 
     /// <summary>
@@ -44,124 +59,25 @@ public class Boneco : MonoBehaviour {
     /// <summary>
     /// Valores usados para alterar a velocidade da ANIMAÇÃO de andar do boneco. Controlado pelo SpeedLevel.
     /// </summary>
-    float[] walkCycleMults = { 0.5f, 0.6f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1f };
-    // Valores beta. Investigação no jogo original necessária.
+    float[] walkCycleMults = { 0.5f, 0.6f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1f }; // Valores beta. Investigação no jogo original necessária.
 
+    // Input related
     /// <summary>
     /// Guarda o estado dos inputs de direção do boneco. 
     /// </summary>
     Vector2Int movementState = new Vector2Int(); // Desenho dos estados no "autômato" na pasta "design & etc"
 
-    // Identificação do jogador e seus respectivos botões e eixos
-    public string player = "Player1"; // Identificação padrão. Definir nova pelo editor.
+    // Identificação do jogador e os nomes de seus respectivos botões e eixos
+    /// <summary>
+    /// Identificação do jogador. Usado para diferenciar os botões e eixos entre multiplos jogadores locais.
+    /// </summary>
+    public string player; 
     string bombButton = "Bomb-";
     string horizontalAxis = "Horizontal-";
     string verticalAxis = "Vertical-";
-    
-    // Constantes
-    const int MinFirePower = 2;
-    const int MaxFirePower = 10;
-    const string sfxPath = "Sounds/SFX/Boneco/";
 
-    #region gets & sets
-
-    public int Layer {
-        get { return gameObject.layer; }
-        set {
-            GetComponentsInChildren<Renderer>()[1].sortingOrder = value;
-            gameObject.layer = value;
-        }
-    }
-
-    public int BombsMax {
-        get { return bombsMax; }
-        set { bombsMax = value; }
-    }
-
-    public int FirePower {
-        get { return firePower; }
-        set {
-            if (value < MinFirePower) {
-                firePower = MinFirePower; 
-            } else if (value > MaxFirePower) {
-                firePower = MaxFirePower; 
-            } else { 
-                firePower = value;
-            }
-        }
-    }
-
-    public int SpeedLevel {
-        get { return speedLevel; }
-        set {
-            if (value < 0) {
-                speedLevel = 0;
-            } else if (value >= speeds.Length) {
-                speedLevel = speeds.Length - 1;
-            } else {
-                speedLevel = value;
-            }
-
-            animator.SetFloat("WalkCycleSpeed", walkCycleMults[SpeedLevel]); // Atualiza a velocidade da animação de andar
-        }
-    }
-
-    public int BombsUsed {
-        get { return bombsUsed; }
-        set { bombsUsed = value; }
-    }
-
-    public bool Dead {
-        get { return dead; }
-        set { dead = value; }
-    }
-
-    /// <summary>
-    /// Retorna a posição central da tile atual do boneco.
-    /// </summary>
-    public Vector2 curTileCenter() {
-        return gc.centerPosition(transform.position);
-    }
-
-    #endregion
-
-    void Start () {
-        gc = GridCalculator.Instance;
-        GetComponentsInChildren<Renderer>()[1].sortingOrder = Layer;
-        animator = GetComponentsInChildren<Animator>()[0];
-
-        // Configuração "sandbox" será definida no futuro spawn do boneco no GridController.
-        /* 
-        if (!gc.randomBlocks) {
-            // Configurações pro modo sem blocos no mapa (usado pra testes)
-            FirePower = 6;
-            BombsMax = 20;
-            SpeedLevel = 8;
-            hasKick = true;
-        } else {
-            FirePower = 2;
-            BombsMax = 1;
-            SpeedLevel = 0;
-            hasKick = false;
-        }*/
-
-        FirePower = 2;
-        BombsMax = 1;
-        SpeedLevel = 0;
-        hasKick = false;
-
-        // Setando os nomes dos botões
-        if (player.StartsWith("Player")) {
-            bombButton += player;
-            horizontalAxis += player;
-            verticalAxis += player;
-        } else {
-            Debug.Log("PutaVida.Exception: Player identification module failed!");
-        }
-	}
-
-    // http://wiki.unity3d.com/index.php?title=Xbox360Controller
-    /*  Mayflash GameCube Controller Adapter for WiiU & PC USB (PC Mode)
+    /*  Input stuff: http://wiki.unity3d.com/index.php?title=Xbox360Controller
+     *  Mayflash GameCube Controller Adapter for WiiU & PC USB (PC Mode)
         Joystick Buttons: 
             0: X
             1: A
@@ -181,6 +97,114 @@ public class Boneco : MonoBehaviour {
 
         As-is, não sei afirmar se há diferenças no gameplay entre os inputs do teclado e do controle. Ambos parecem iguais.
     */
+
+    // Constantes
+    const int MinFirePower = 2;
+    const int MaxFirePower = 10;
+    const string sfxPath = "Sounds/SFX/Boneco/";
+
+    /// <summary>
+    /// GridCalculator.Instance shortcut. Ver Classe GridCalculator.
+    /// </summary>
+    GridCalculator gc;
+
+    #region gets & sets
+
+    /// <summary>
+    /// Layer do boneco. Valor é o mesmo da sortingOrder de seu sprite.
+    /// </summary>
+    public int Layer {
+        get { return gameObject.layer; }
+        set {
+            GetComponentsInChildren<Renderer>()[1].sortingOrder = value;
+            gameObject.layer = value;
+        }
+    }
+
+    /// <summary>
+    /// Tiles além do centro ocupado pela explosão da bomba deste boneco (min = 1)
+    /// </summary>
+    public int FirePower {
+        get { return firePower; }
+        set {
+            if (value < MinFirePower) {
+                firePower = MinFirePower; 
+            } else if (value > MaxFirePower) {
+                firePower = MaxFirePower; 
+            } else { 
+                firePower = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Quantidade de bombas em uso pelo boneco (máximo = bombsMax). Get e Set deve ser chamado apenas por Bombs.
+    /// </summary>
+    public int BombsUsed {
+        get { return bombsUsed; }
+        set { bombsUsed = value; }
+    }
+
+    /// <summary>
+    /// Nível atual de velocidade. Muda de acordo com os items "SpeedUp" acumulados.
+    /// </summary>
+    public int SpeedLevel {
+        get { return speedLevel; }
+        set {
+            if (value < 0) {
+                speedLevel = 0;
+            } else if (value >= speeds.Length) {
+                speedLevel = speeds.Length - 1;
+            } else {
+                speedLevel = value;
+            }
+
+            animator.SetFloat("WalkCycleSpeed", walkCycleMults[SpeedLevel]); // Atualiza a velocidade da animação de andar
+        }
+    }
+
+    /// <summary>
+    /// Retorna a posição central da tile atual do boneco.
+    /// </summary>
+    public Vector2 curTileCenter() {
+        return gc.centerPosition(transform.position);
+    }
+
+    #endregion
+
+    void Awake() {
+        gc = GridCalculator.Instance;
+        GetComponentsInChildren<Renderer>()[1].sortingOrder = Layer;
+        animator = GetComponentsInChildren<Animator>()[0];
+
+        // Setando os nomes dos botões
+        if (player.StartsWith("Player")) {
+            bombButton += player;
+            horizontalAxis += player;
+            verticalAxis += player;
+        } else {
+            Debug.Log("PutaVida.Exception: Player identification module failed!");
+        }
+    }
+
+    /// <summary>
+    /// Prepara o boneco para a partida. Por enquanto apenas ajusta os power-ups iniciais.
+    /// </summary>
+    /// <param name="sandboxMode"> Se o modo de jogo é sandbox (sem blocos, altos power-ups). </param>    
+    public void setup(bool sandboxMode) {
+        if (sandboxMode) {
+            FirePower = 6;
+            bombsMax = 20;
+            SpeedLevel = 8;
+            hasKick = true;
+        } else {
+            FirePower = 2;
+            bombsMax = 1;
+            SpeedLevel = 0;
+            hasKick = false;
+        }
+    }
+
     // Update is called once per frame
     void Update () {
 
@@ -508,8 +532,8 @@ public class Boneco : MonoBehaviour {
     /// Cria bomba na tile atual se possível
     /// </summary>
     void placeBomb() {       
-        if (!dead && BombsUsed < bombsMax && gc.tileContent(transform.position) == null) {
-            BombsUsed++;
+        if (!dead && bombsUsed < bombsMax && gc.tileContent(transform.position) == null) {
+            bombsUsed++;
             Bomb b = Instantiate(Resources.Load<Bomb>("prefabs/Bomb"));
             b.setup(this);
         }
@@ -532,7 +556,7 @@ public class Boneco : MonoBehaviour {
                 break;
 
             case "BombUp":
-                BombsMax++;
+                bombsMax++;
                 break;
 
             case "SpeedUp":

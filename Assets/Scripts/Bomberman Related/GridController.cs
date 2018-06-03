@@ -10,7 +10,11 @@ public class GridController : MonoBehaviour {
 
     GridCalculator gc; 
     TileInfo[,] gridInfo; // Matrix que guarda os estados das tiles. ATM usado apenas pra geração dos blocos aleatórios
-    public bool randomBlocks;
+
+    /// <summary>
+    /// Se verdadeiro, nenhum soft-block será criado e os bonecos já terão vários power-ups.
+    /// </summary>
+    public bool sandboxMode;
 
     /* Grid 101:
         * ^ Y+
@@ -28,14 +32,13 @@ public class GridController : MonoBehaviour {
 
         gc = GridCalculator.Instance;
 
-        //gc.updateGridObject(); // NOT GOOD
+        Boneco player1 = Instantiate<Boneco>(Resources.Load<Boneco>("Prefabs/Boneco 1"));
+        player1.transform.position = gc.centerPosition(player1.transform.position); // Ajusta o boneco pro centro da tile.
+        player1.setup(sandboxMode);
 
-        if (randomBlocks) {
+        if (!sandboxMode) {
             generateBlocks();
-        } 
-
-        GameObject boneco = GameObject.FindWithTag("Player");
-        boneco.transform.position = gc.centerPosition(boneco.transform.position); // Ajusta o boneco pro centro da tile.
+        }
     }
 	
 	// Update is called once per frame
