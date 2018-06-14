@@ -90,10 +90,10 @@ public class Boneco : MonoBehaviour {
             8: ???
 
         Ports: 
-            Port 1: Joystick 6
-            Port 2: Joystick 5
-            Port 3: Joystick 4
-            Port 4: Joystick 7
+            Port 1: Joystick 7
+            Port 2: Joystick 6
+            Port 3: Joystick 5
+            Port 4: Joystick 4
 
         As-is, não sei afirmar se há diferenças no gameplay entre os inputs do teclado e do controle. Ambos parecem iguais.
     */

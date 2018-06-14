@@ -9,14 +9,19 @@ using System;
 public class GridController : MonoBehaviour {
 
     GridCalculator gc; 
-    TileInfo[,] gridInfo; // Matrix que guarda os estados das tiles. ATM usado apenas pra geração dos blocos aleatórios
+    TileInfo[,] boardInfo; // Matrix que guarda os estados das tiles. ATM usado apenas pra geração dos blocos aleatórios
 
     /// <summary>
     /// Se verdadeiro, nenhum soft-block será criado e os bonecos já terão vários power-ups.
     /// </summary>
     public bool sandboxMode;
 
-    /* Grid 101:
+    /// <summary>
+    /// Número de jogadores na partida (Max 2 atm). 
+    /// </summary>
+    public int playersAmount;
+
+    /* Board 101:
         * ^ Y+
         * |
         * |
@@ -32,13 +37,7 @@ public class GridController : MonoBehaviour {
 
         gc = GridCalculator.Instance;
 
-        Boneco player1 = Instantiate<Boneco>(Resources.Load<Boneco>("Prefabs/Boneco 1"));
-        player1.transform.position = gc.centerPosition(player1.transform.position); // Ajusta o boneco pro centro da tile.
-        player1.setup(sandboxMode);
-
-        if (!sandboxMode) {
-            generateBlocks();
-        }
+        setupBoard();
     }
 	
 	// Update is called once per frame
@@ -46,28 +45,30 @@ public class GridController : MonoBehaviour {
         
     }
 
-    #region Grid Setup
+    #region Board Setup
     /// <summary>
-    /// Cria e posiciona os blocos destrutíveis no mapa. 
+    /// Prepara o tabuleiro. Posiciona os blocos destrutíveis no mapa e os jogadores.
     /// </summary>
-    void generateBlocks() {
+    void setupBoard() {
+
         // Verifica se o mapa está corretamente posicionado
         Vector2 curPos = gc.centerPosition(new Vector2(0, 0));
         if (curPos != new Vector2(0, 0) || !gc.tileContent(new Vector2(-1, 0)).CompareTag("Border") ||
             !gc.tileContent(new Vector2(0, -1)).CompareTag("Border")) {
             Debug.Log("Deu ruim. Tabuleiro mal formado"); // PutaVida.exception
+            return;
         }
 
         // Pegando tamanho da parte jogável do mapa
-        int x = 1, y = 1;
+        int xSize = 1, ySize = 1;
         do {
             GameObject content = gc.tileContent(curPos + Vector2.up);
             if (content != null && content.CompareTag("Border")) {
                 break;
             }
             curPos += Vector2.up;
-            y++;
-        } while (y < 100); // Limite arbitrário pra impedir loop infinito :P
+            ySize++;
+        } while (ySize < 100); // Limite arbitrário pra impedir loop infinito :P
 
         do {
             GameObject content = gc.tileContent(curPos + Vector2.right);
@@ -75,37 +76,54 @@ public class GridController : MonoBehaviour {
                 break;
             }
             curPos += Vector2.right;
-            x++;
-        } while (x < 100);
+            xSize++;
+        } while (xSize < 100);
 
-        // População da gridInfo
-        gridInfo = new TileInfo[x, y];
-        for (int i = 0; i < x; i++) {
-            for (int j = 0; j < y; j++) {
-                gridInfo[i, j] = new TileInfo(gc.centerPosition(new Vector2(i, j)));
+        // População da boardInfo
+        boardInfo = new TileInfo[xSize, ySize];
+        for (int i = 0; i < xSize; i++) {
+            for (int j = 0; j < ySize; j++) {
+                boardInfo[i, j] = new TileInfo(gc.centerPosition(new Vector2(i, j)));
                 GameObject content = gc.tileContent(new Vector2(i, j));
                 if (content != null) {
-                    gridInfo[i, j].Block = content.tag;
+                    boardInfo[i, j].Block = content.tag;
                 }
             }
         }
 
-        // Setagem de spawn beta. 
-        gridInfo[0, 0].Spawn = true;
-        gridInfo[1, 0].Spawn = true;
-        gridInfo[0, 1].Spawn = true;
+        // Spawn dos jogadores
+        boardInfo[0, ySize - 1].Spawn = true;
+        boardInfo[1, ySize - 1].Spawn = true;
+        boardInfo[0, ySize - 2].Spawn = true;
+        if (playersAmount == 2) {
+            boardInfo[xSize - 1, 0].Spawn = true;
+            boardInfo[xSize - 2, 0].Spawn = true;
+            boardInfo[xSize - 1, 1].Spawn = true;
+        }
 
-        // Criação dos blocos destrutíveis aleatórios
-        List<SoftBlock> rbs = new List<SoftBlock>();
-        foreach (TileInfo t in gridInfo) {
-            if (!t.Spawn && t.Block == "") {
-                if (UnityEngine.Random.Range(0, 100) < 70) {
-                    t.Block = "SoftBlock";
-                    rbs.Add(Instantiate(Resources.Load<SoftBlock>("Prefabs/SoftBlock"), t.Center, Quaternion.identity));
+        Boneco player1 = Instantiate<Boneco>(Resources.Load<Boneco>("Prefabs/Boneco 1"));
+        player1.transform.position = gc.centerPosition(new Vector2(0, ySize - 1)); // Ajusta o boneco pro centro da tile.
+        player1.setup(sandboxMode);
+        if (playersAmount == 2) {
+            Boneco player2 = Instantiate<Boneco>(Resources.Load<Boneco>("Prefabs/Boneco 2"));
+            player2.transform.position = gc.centerPosition(new Vector2(xSize - 1, 0)); // Ajusta o boneco pro centro da tile.
+            player2.setup(sandboxMode);
+        }
+
+        // Criação dos blocos destrutíveis aleatórios e itens
+        // Atenção (14/06/2018): Tem que gerar os blocos em locais "igualmente" aleatórios e garantindo que exatamente 80 blocos serão criados.
+        if (!sandboxMode) {
+            List<SoftBlock> rbs = new List<SoftBlock>();
+            foreach (TileInfo t in boardInfo) {
+                if (!t.Spawn && t.Block == "") {
+                    if (UnityEngine.Random.Range(0, 100) < 70) {
+                        t.Block = "SoftBlock";
+                        rbs.Add(Instantiate(Resources.Load<SoftBlock>("Prefabs/SoftBlock"), t.Center, Quaternion.identity));
+                    }
                 }
             }
+            randomizeItems(rbs);
         }
-        randomizeItems(rbs);
     }
 
     /// <summary>
@@ -120,7 +138,6 @@ public class GridController : MonoBehaviour {
             new Tuple<string, int>("FireUp", 5),
             new Tuple<string, int>("SpeedUp", 8),
             new Tuple<string, int>("Kick", 2)
-            //new Tuple<string, int>("BombUp", 10)
         };
 
         do {

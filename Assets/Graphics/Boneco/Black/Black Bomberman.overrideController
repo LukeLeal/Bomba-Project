@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Black Bomberman
+  m_Controller: {fileID: 9100000, guid: fdc2c2dd14d89e8469eb2a54c599adac, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: ee356a21c81619e40b8bf7354b52a29f, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1bc358aa810aaeb419cc517155aed9f2, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 94713cd3080a2f541af6dbef4b832123, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 4caedfa5070cb3f4fa28161f1592fe7e, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: ccf35c85911d8e546b833734126fbb5d, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1bbd478eb7f55d64896e1992c0a8d4eb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 6dde2e37f9b3d8944964e854524662b7, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: e3841640f4e543c4d97adcd52566f669, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 734921c17356f9f44af1a3da46dd5200, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a46958c7e19e10145be4e66028703327, type: 2}

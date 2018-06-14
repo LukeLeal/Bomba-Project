@@ -146,7 +146,7 @@ AudioSource:
   m_Volume: 1
   m_Pitch: 1
   Loop: 1
-  Mute: 0
+  Mute: 1
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
@@ -2392,6 +2392,29 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &143799938 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1699929142222220, guid: fc0784239afa3a741a3f1538b3ff1ebb,
+    type: 2}
+  m_PrefabInternal: {fileID: 192016427}
+--- !u!95 &143799940
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 143799938}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d5337f203f5dd5b48a79c93157f91c11, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &164217781
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2468,7 +2491,8 @@ Prefab:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 95690614667426354, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: fc0784239afa3a741a3f1538b3ff1ebb, type: 2}
   m_IsPrefabParent: 0
 --- !u!1 &496002855
@@ -2556,6 +2580,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sandboxMode: 0
+  playersAmount: 2
 --- !u!4 &884131895
 Transform:
   m_ObjectHideFlags: 0
@@ -5793,12 +5818,16 @@ Prefab:
     - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
       propertyPath: Mute
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
       propertyPath: BypassEffects
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1608730359958748, guid: f56988698f892e14ea9c3c01ef64c937, type: 2}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: f56988698f892e14ea9c3c01ef64c937, type: 2}
