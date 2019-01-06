@@ -146,7 +146,7 @@ AudioSource:
   m_Volume: 1
   m_Pitch: 1
   Loop: 1
-  Mute: 1
+  Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
@@ -5818,7 +5818,7 @@ Prefab:
     - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
       propertyPath: Mute
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 82835747177225076, guid: f56988698f892e14ea9c3c01ef64c937,
         type: 2}
